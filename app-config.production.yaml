@@ -1,0 +1,34 @@
+app:
+  baseUrl: http://localhost:7007
+
+backend:
+  baseUrl: http://localhost:7007
+  listen: ':7007'
+
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+
+
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    - type: url
+      target: https://github.com/${GITHUB_ORG_ID}/backstage/blob/main/catalog-info.yaml
+    - type: url
+      target: https://github.com/${GITHUB_ORG_ID}/backstage/blob/main/templates/node-service/template.yaml
+      rules:
+        - allow: [Template]
+    - type: url
+      target: https://github.com/${GITHUB_ORG_ID}/backstage/blob/main/templates/podinfo-example/template.yaml
+      rules:
+        - allow: [Template]
+    - type: url
+      target: https://github.com/${GITHUB_ORG_ID}/backstage/blob/main/examples/org.yaml
+      rules:
+        - allow: [User, Group]

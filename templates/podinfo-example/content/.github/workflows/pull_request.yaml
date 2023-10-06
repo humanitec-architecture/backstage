@@ -1,0 +1,151 @@
+name: Pull Request
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+permissions:
+  contents: read
+  pull-requests: write
+env:
+  APP_NAME: ${{ values.name }}
+  AWS_ECR: {% raw %}${{ secrets.AWS_ECR }}{% endraw %}
+  IMAGE: ${{ values.image }}
+  AWS_REGION: {% raw %}${{ secrets.AWS_REGION }}{% endraw %}
+  
+  BASE_ENVIRONMENT: 'development'
+  ENVIRONMENT_TYPE: 'development'
+  SCORE_HUMANITEC_VERSION: 0.7.0
+  ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
+  ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
+
+{% raw %}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create Humanitec Env
+        run: |
+            # Get deployment ID of the main development environment
+            curl \
+            -H "Content-Type: application/json" \
+            -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
+            https://api.humanitec.io/orgs/${{ secrets.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.BASE_ENVIRONMENT }} \
+            | jq -r ".last_deploy.id" > deploy_id.txt
+
+            # Create a new environment for the PR
+            curl -X POST \
+            -H "Content-Type: application/json" \
+            -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
+            https://api.humanitec.io/orgs/${{ secrets.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs \
+            --data-binary @- << EOF
+            {
+              "from_deploy_id": "$(cat deploy_id.txt)",
+              "id": "${{ env.ENVIRONMENT_ID }}",
+              "name": "${{ env.ENVIRONMENT_NAME }}",
+              "type": "${{ env.ENVIRONMENT_TYPE }}"
+            }
+            EOF
+      - uses: score-spec/setup-score@v2
+        with:
+          file: score-humanitec
+          version: ${{ env.SCORE_HUMANITEC_VERSION }}
+      - name: Set Tag with SHA
+        run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
+
+      - run: |
+          aws ecr get-login-password --region $AWS_REGION \
+            | docker login \
+                --username AWS \
+                --password-stdin \
+                $AWS_ECR
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - run: docker build --platform linux/amd64 . -t $AWS_ECR/$IMAGE:$TAG
+      - run: docker push $AWS_ECR/$IMAGE:$TAG
+
+      - name: Inform Humanitec
+        run: |-
+          curl \
+            --request POST 'https://api.humanitec.io/orgs/${{ secrets.HUMANITEC_ORG_ID }}/artefact-versions' \
+            --header 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+                "name": "'$AWS_ECR/$IMAGE'",
+                "version": "'$TAG'",
+                "type": "container",
+                "commit": "'$GITHUB_SHA'",
+                "ref": "'$GITHUB_REF'"
+            }'
+
+      - name: Run Score
+        run: |
+          score-humanitec delta \
+              --retry \
+              --deploy \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ secrets.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} \
+              --property containers.frontend.image=$AWS_ECR/$IMAGE:$TAG \
+              | tee score_output.json
+      - name: Wait for deployment
+        run: |
+          sleep 1
+
+          IS_DONE=false
+
+          while [ "$IS_DONE" = false ]; do
+            CURRENT_STATUS=$(curl \
+              -H "Content-Type: application/json" \
+              -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
+              https://api.humanitec.io/orgs/${{ secrets.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.ENVIRONMENT_ID }} \
+              | jq -r ".last_deploy.status")
+            
+            INPROGRESS="in progress"
+
+            if [ "$CURRENT_STATUS" = "$INPROGRESS" ]; then
+              echo "Deployment still in progress..."
+              sleep 1
+            else
+              echo "Deployment complete!"
+              IS_DONE=true
+            fi
+          done
+      - name: Build Comment Message
+        run: |
+          ENV_URL=$(jq -r ".metadata.url" score_output.json)
+          DEPLOYMENT_ID=$(jq -r ".id" score_output.json)
+          DOMAINS=$(curl -H "Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}" https://api.humanitec.io/orgs/${{ secrets.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.ENVIRONMENT_ID }}/resources | jq -r '. | map(. | select(.type == "dns")) | map((.res_id | split(".") | .[1]) + ": [" + .resource.host + "](https://" + .resource.host + ")") | join("\n")')
+          
+          echo "## Deployment Complete for ${{ env.ENVIRONMENT_NAME }}! :tada:" >> pr_message.txt
+          echo "" >> pr_message.txt
+          
+          echo "### [View in Humanitec]($ENV_URL)" >> pr_message.txt
+          echo "Deployment ID: $DEPLOYMENT_ID" >> pr_message.txt
+
+          echo "" >> pr_message.txt
+          echo "### Domains:" >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "$DOMAINS" >> pr_message.txt
+          echo "" >> pr_message.txt
+
+          echo "<details><summary>Score Output</summary>" >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "### Score Output:" >> pr_message.txt
+          echo '```json' >> pr_message.txt
+          echo "" >> pr_message.txt
+          cat score_output.json >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo '```' >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "</details>" >> pr_message.txt
+
+          cat pr_message.txt
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: pr_message.txt
+
+{% endraw %}

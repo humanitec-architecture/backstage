@@ -1,0 +1,23 @@
+name: Delete PR Env
+on:
+  pull_request:
+    types:
+      - closed
+
+env:
+  APP_NAME: ${{ values.name }}
+  ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
+
+{% raw %}
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete Humanitec Env
+        run: |
+            curl -X DELETE \
+            -H "Content-Type: application/json" \
+            -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
+            https://api.humanitec.io/orgs/${{ secrets.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.ENVIRONMENT_ID }}
+
+{% endraw %}

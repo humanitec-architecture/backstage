@@ -1,0 +1,36 @@
+apiVersion: score.dev/v1b1
+
+metadata:
+  name: ${{ values.name | dump }}
+
+# Define the ports that this service exposes
+service:
+  ports:
+    www:
+      port: 80 # The port that the service will be exposed on
+      targetPort: 3000 # The port that the container will be listening on
+
+# Define the containers that make up this service
+containers:
+  frontend:
+    image: # Set by pipeline
+    variables:
+      PORT: "3000"
+      DB_DATABASE: ${resources.db.name}
+      DB_USER: ${resources.db.username}
+      DB_PASSWORD: ${resources.db.password}
+      DB_HOST: ${resources.db.host}
+      DB_PORT: ${resources.db.port}
+
+# Define the resources that this service needs
+resources:
+  dns: # We need a DNS record to point to the service 
+    type: dns
+  route:
+    type: route
+    params:
+      host: ${resources.dns.host}
+      path: /
+      port: 80
+  db:  # We need a database to store data
+    type: mysql

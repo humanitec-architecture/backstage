@@ -1,0 +1,63 @@
+app:
+  title: Scaffolded Backstage App
+  baseUrl: http://localhost:3000
+
+organization:
+  name: Humanitec
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+
+integrations:
+  github:
+    - host: github.com
+      apps:
+        - $include: credentials/github-app-backstage-humanitec-credentials.yaml
+
+proxy:
+
+techdocs:
+  builder: 'local'
+  generator:
+    runIn: 'local'
+  publisher:
+    type: 'local'
+
+auth:
+  providers: {}
+
+scaffolder:
+
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    - type: file
+      target: ../../catalog-info.yaml
+    - type: file
+      target: ../../templates/node-service/template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ../../templates/podinfo-example/template.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+humanitec:
+  orgId: ${HUMANITEC_ORG_ID}
+  token: ${HUMANITEC_TOKEN}

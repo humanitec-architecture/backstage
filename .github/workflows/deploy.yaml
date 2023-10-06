@@ -1,0 +1,93 @@
+name: Deploy Backstage
+
+on:
+  push:
+    branches: 'main'
+
+concurrency: ${{ github.ref }}
+
+env:
+  IMAGE: backstage
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  SCORE_HUMANITEC_VERSION: '0.7.0'
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+
+jobs:
+  deploy:
+    name: Build & Notify Humanitec
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    env:
+      DOCKER_BUILDKIT: "1"
+
+    if: ${{ github.repository_owner != 'humanitec-architecture' }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure correct org after copying from template
+        run: |
+          # Ensure correct github org
+          find ./templates -type f -name "*.yaml" -exec sed -i 's/humanitec-architecture/${{ github.repository_owner }}/g' {} +
+
+          # Ensure correct humanitec org
+          sed -i 's/humanitec-architecture/${{ vars.HUMANITEC_ORG_ID }}/g' catalog-info.yaml
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          file_pattern: 'catalog-info.yaml templates/*.yaml'
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: login to aws ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: "set CONTAINER_REGISTRY env var"
+        run: |
+          echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+      - name: Set Tag with SHA
+        run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
+
+      - run: mkdir credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
+      - run: docker image build -t backstage .
+
+      - name: Push backstage image
+        run: |
+          docker tag backstage $CONTAINER_REGISTRY/$IMAGE:$TAG
+          docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
+
+      - name: Inform Humanitec
+        run: |-
+          curl \
+            --request POST 'https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/artefact-versions' \
+            --header 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+                "name": "'$CONTAINER_REGISTRY/$IMAGE'",
+                "version": "'$TAG'",
+                "type": "container",
+                "commit": "'$GITHUB_SHA'",
+                "ref": "'$GITHUB_REF'"
+            }'
+
+      - uses: score-spec/setup-score@v2
+        with:
+          file: score-humanitec
+          version: ${{ env.SCORE_HUMANITEC_VERSION }}
+
+      - name: Run Score
+        run: score-humanitec delta --retry --deploy --token ${{ secrets.HUMANITEC_TOKEN }} --org ${{ vars.HUMANITEC_ORG_ID }} --app backstage --env development -f score.yaml --extensions humanitec.score.yaml  --property containers.backstage.image=$CONTAINER_REGISTRY/$IMAGE:$TAG

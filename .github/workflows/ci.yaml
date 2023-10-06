@@ -1,0 +1,55 @@
+name: ci
+permissions:
+  contents: read
+on:
+  push:
+    branches: '!main'
+jobs:
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+      - name: docker build podinfo
+        run: |
+          docker image build -t podinfo:latest templates/podinfo-example/content/
+      - name: docker build node-service
+        run: |
+          docker image build -t node-service:latest templates/node-service/content/
+      - name: docker build backstage
+        run: |
+          mkdir credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
+          docker image build -t backstage:latest .
+  score-humanitec:
+    runs-on: ubuntu-latest
+    env:
+      SCORE_HUMANITEC_VERSION: '0.7.0'
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+      - name: install score-humanitec
+        uses: score-spec/setup-score@v2
+        with:
+          file: score-humanitec
+          version: ${{ env.SCORE_HUMANITEC_VERSION }}
+      - name: score-humanitec run - backstage
+        run: |
+          score-humanitec run \
+              --env development \
+              -f score.yaml \
+              --extensions humanitec.score.yaml \
+              --property containers.backstage.image=backstage:latest
+      - name: score-humanitec run - node-service
+        run: |
+          score-humanitec run \
+              --env development \
+              -f templates/node-service/content/score.yaml \
+              --extensions templates/node-service/content/humanitec.score.yaml \
+              --property containers.frontend.image=node-service:latest
+      - name: score-humanitec run - podinfo
+        run: |
+          score-humanitec run \
+              --env development \
+              -f templates/podinfo-example/content/score.yaml \
+              --extensions templates/podinfo-example/content/humanitec.score.yaml \
+              --property containers.frontend.image=podinfo:latest

@@ -1,0 +1,76 @@
+name: Deploy ${{ values.name | capitalize }}
+
+on:
+  push:
+    branches: main
+{% raw %}
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+env:
+{% endraw %}
+  IMAGE: ${{ values.image }}
+{% raw %}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+{% endraw %}
+  SCORE_HUMANITEC_VERSION: 0.7.0
+  APP_NAME: ${{ values.name }}
+
+{% raw %}
+jobs:
+  deploy:
+    name: Build & Notify Humanitec
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set Tag with SHA
+        run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: login to aws ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: "set CONTAINER_REGISTRY env var"
+        run: |
+          echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+      - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
+      - run: docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
+
+      - name: Inform Humanitec
+        run: |-
+          curl \
+            --request POST 'https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/artefact-versions' \
+            --header 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+                "name": "'$CONTAINER_REGISTRY/$IMAGE'",
+                "version": "'$TAG'",
+                "type": "container",
+                "commit": "'$GITHUB_SHA'",
+                "ref": "'$GITHUB_REF'"
+            }'
+
+      - uses: score-spec/setup-score@v2
+        with:
+          file: score-humanitec
+          version: ${{ env.SCORE_HUMANITEC_VERSION }}
+
+      - name: Deploy using Score
+        run: |
+          score-humanitec delta --env development --app ${{ env.APP_NAME }} --org="${{ vars.HUMANITEC_ORG_ID }}" --token "${{ secrets.HUMANITEC_TOKEN }}" --deploy --property containers.frontend.image=$CONTAINER_REGISTRY/$IMAGE:$TAG
+{% endraw %}

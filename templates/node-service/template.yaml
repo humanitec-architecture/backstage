@@ -1,0 +1,80 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: nodejs-service-template
+  title: NodeJS Service Template
+  description: An example template that creates a simple Hello World service
+  tags:
+    - score
+    - humanitec
+spec:
+  owner: user:guest
+  type: service
+
+  parameters:
+    - title: New NodeJS Service
+      required:
+        - componentName
+      properties:
+        componentName:
+          title: Component Name
+          type: string
+          description: Unique name of the project
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+          ui:field: ValidateHumanitecAppID
+
+  steps:
+    - name: Read Environment
+      id: environment
+      action: backend:get-environment
+
+    - id: create-ecr
+      name: Create ECR Rrepository
+      action: roadiehq:aws:ecr:create
+      input:
+        repoName: ${{ parameters.componentName }}
+        region: ${{ steps.environment.output.awsRegion }}
+
+    - id: fetch-base
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          name: ${{ parameters.componentName }}
+          image: ${{ parameters.componentName }}
+          orgId: ${{ steps.environment.output.orgId }}
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        defaultBranch: main
+        description: This is ${{ parameters.componentName }}
+        repoUrl: github.com?owner=humanitec-architecture&repo=${{ parameters.componentName }}
+        repoVisibility: public
+        protectDefaultBranch: false
+
+    - id: humanitec-create-app
+      name: Create Humanitec App
+      action: humanitec:create-app
+      input:
+        appId: ${{ parameters.componentName }}
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
