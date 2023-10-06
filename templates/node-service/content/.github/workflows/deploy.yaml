@@ -14,7 +14,7 @@ env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
 {% endraw %}
-  SCORE_HUMANITEC_VERSION: 0.7.0
+  SCORE_HUMANITEC_VERSION: '0.8.0'
   APP_NAME: ${{ values.name }}
 
 {% raw %}
@@ -72,5 +72,15 @@ jobs:
 
       - name: Deploy using Score
         run: |
-          score-humanitec delta --env development --app ${{ env.APP_NAME }} --org="${{ vars.HUMANITEC_ORG_ID }}" --token "${{ secrets.HUMANITEC_TOKEN }}" --deploy --property containers.frontend.image=$CONTAINER_REGISTRY/$IMAGE:$TAG
+          score-humanitec delta \
+            --retry \
+            --deploy \
+            --token ${{ secrets.HUMANITEC_TOKEN }} \
+            --org ${{ vars.HUMANITEC_ORG_ID }} \
+            --app ${{ env.APP_NAME }} \
+            --env development \
+            -f score.yaml \
+            --extensions humanitec.score.yaml \
+            --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
+            --property containers.frontend.image=$CONTAINER_REGISTRY/$IMAGE:$TAG
 {% endraw %}

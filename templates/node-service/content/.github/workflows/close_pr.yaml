@@ -18,6 +18,6 @@ jobs:
             curl -X DELETE \
             -H "Content-Type: application/json" \
             -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
-            https://api.humanitec.io/orgs/${{ secrets.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.ENVIRONMENT_ID }}
+            https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.ENVIRONMENT_ID }}
 
 {% endraw %}
