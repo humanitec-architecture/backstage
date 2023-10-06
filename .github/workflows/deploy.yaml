@@ -9,7 +9,7 @@ concurrency: ${{ github.ref }}
 env:
   IMAGE: backstage
   AWS_REGION: ${{ vars.AWS_REGION }}
-  SCORE_HUMANITEC_VERSION: '0.7.0'
+  SCORE_HUMANITEC_VERSION: '0.8.0'
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
 
 jobs:
@@ -90,4 +90,16 @@ jobs:
           version: ${{ env.SCORE_HUMANITEC_VERSION }}
 
       - name: Run Score
-        run: score-humanitec delta --retry --deploy --token ${{ secrets.HUMANITEC_TOKEN }} --org ${{ vars.HUMANITEC_ORG_ID }} --app backstage --env development -f score.yaml --extensions humanitec.score.yaml  --property containers.backstage.image=$CONTAINER_REGISTRY/$IMAGE:$TAG
+        run: |
+          score-humanitec delta \
+            --retry \
+            --deploy \
+            --token ${{ secrets.HUMANITEC_TOKEN }} \
+            --org ${{ vars.HUMANITEC_ORG_ID }} \
+            --app backstage \
+            --env development \
+            -f score.yaml \
+            --extensions humanitec.score.yaml \
+            --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
+            --property containers.backstage.image=$CONTAINER_REGISTRY/$IMAGE:$TAG \
+            --message "${{ github.event.head_commit.message }}"
