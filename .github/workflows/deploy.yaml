@@ -101,4 +101,5 @@ jobs:
             -f score.yaml \
             --extensions humanitec.score.yaml \
             --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
-            --property containers.backstage.image=$CONTAINER_REGISTRY/$IMAGE:$TAG
+            --property containers.backstage.image=$CONTAINER_REGISTRY/$IMAGE:$TAG \
+            --message "${{ github.event.head_commit.message }}"
