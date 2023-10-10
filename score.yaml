@@ -40,6 +40,7 @@ containers:
       POSTGRES_PORT: ${resources.db.port}
       POSTGRES_USER: ${resources.db.username}
       AWS_DEFAULT_REGION: ${values.AWS_DEFAULT_REGION}
+      CLOUD_PROVIDER: ${values.CLOUD_PROVIDER}
 
     files:
       - target: /app/credentials/github-app-backstage-humanitec-credentials.yaml

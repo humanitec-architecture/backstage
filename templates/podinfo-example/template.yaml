@@ -33,6 +33,7 @@ spec:
     - id: create-ecr
       name: Create ECR Rrepository
       action: roadiehq:aws:ecr:create
+      if: ${{ steps.environment.output.cloudProvider == 'aws' }}
       input:
         repoName: ${{ parameters.componentName }}
         region: ${{ steps.environment.output.awsRegion }}
@@ -46,6 +47,7 @@ spec:
           name: ${{ parameters.componentName }}
           image: ${{ parameters.componentName }}
           orgId: ${{ steps.environment.output.orgId }}
+          cloudProvider: ${{ steps.environment.output.cloudProvider }}
 
     - id: publish
       name: Publish

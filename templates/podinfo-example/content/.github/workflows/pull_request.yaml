@@ -8,9 +8,21 @@ permissions:
 env:
   APP_NAME: ${{ values.name }}
   IMAGE: ${{ values.image }}
-  AWS_REGION: {% raw %}${{ vars.AWS_REGION }}{% endraw %}
-  AWS_ROLE_ARN: {% raw %}${{ vars.AWS_ROLE_ARN }}{% endraw %}
-
+{%- if values.cloudProvider === "aws" -%}
+{% raw %}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+{% endraw %}
+{%- elif values.cloudProvider === "gcp" -%}
+{% raw %}
+  GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+  GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+  GCP_GAR_HOST: ${{ vars.GCP_GAR_HOST }}
+  GCP_GAR_NAME: ${{ vars.GCP_GAR_NAME }}
+{% endraw %}
+{%- else -%}
+# Unknown cloud provider: ${{ values.cloudProvider }}
+{% endif %}
   BASE_ENVIRONMENT: 'development'
   ENVIRONMENT_TYPE: 'development'
   SCORE_HUMANITEC_VERSION: '0.8.0'
@@ -55,7 +67,9 @@ jobs:
           version: ${{ env.SCORE_HUMANITEC_VERSION }}
       - name: Set Tag with SHA
         run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
-
+{% endraw %}
+{%- if values.cloudProvider === "aws" -%}
+{% raw %}
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -73,7 +87,22 @@ jobs:
           echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+{% endraw %}
+{%- elif values.cloudProvider === "gcp" -%}
+{% raw %}
+      - name: configure gcp credentials
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
 
+      - name: login to gcp gar
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_GAR_HOST }} --quiet
+          echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"
+{% endraw %}
+{% endif %}
+{% raw %}
       - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
       - run: docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
 
