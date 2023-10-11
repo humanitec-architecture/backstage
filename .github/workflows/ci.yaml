@@ -2,8 +2,8 @@ name: ci
 permissions:
   contents: read
 on:
-  push:
-    branches: '!main'
+  pull_request:
+    branches: [main]
 jobs:
   containers:
     runs-on: ubuntu-latest
