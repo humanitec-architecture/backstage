@@ -33,6 +33,7 @@ export default async function createPlugin({
     createGetEnvironmentAction({
       orgId: config.getString('humanitec.orgId'),
       awsRegion: process.env.AWS_DEFAULT_REGION || '',
+      cloudProvider: config.getString('cloudProvider'),
     }),
     createHumanitecApp({
       orgId: config.getString('humanitec.orgId'),

@@ -8,9 +8,15 @@ concurrency: ${{ github.ref }}
 
 env:
   IMAGE: backstage
-  AWS_REGION: ${{ vars.AWS_REGION }}
   SCORE_HUMANITEC_VERSION: '0.8.0'
+  # CLOUD_PROVIDER: aws
+  AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+  # CLOUD_PROVIDER: gcp
+  GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+  GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+  GCP_GAR_HOST: ${{ vars.GCP_GAR_HOST }}
+  GCP_GAR_NAME: ${{ vars.GCP_GAR_NAME }}
 
 jobs:
   deploy:
@@ -24,7 +30,7 @@ jobs:
     env:
       DOCKER_BUILDKIT: "1"
 
-    if: ${{ github.repository_owner != 'humanitec-architecture' }}
+    if: ${{ vars.CLOUD_PROVIDER }}
 
     steps:
       - uses: actions/checkout@v3
@@ -41,23 +47,40 @@ jobs:
         with:
           file_pattern: 'catalog-info.yaml templates/*.yaml'
 
-      - name: configure aws credentials
+
+      - if: ${{ vars.CLOUD_PROVIDER == 'aws' }}
+        name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: login to aws ecr
+      - if: ${{ vars.CLOUD_PROVIDER == 'aws' }}
+        name: login to aws ecr
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
 
-      - name: "set CONTAINER_REGISTRY env var"
+      - if: ${{ vars.CLOUD_PROVIDER == 'aws' }}
+        name: "set CONTAINER_REGISTRY env var"
         run: |
           echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+      - if: ${{ vars.CLOUD_PROVIDER == 'gcp' }}
+        name: configure gcp credentials
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - if: ${{ vars.CLOUD_PROVIDER == 'gcp' }}
+        name: login to gcp gar
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_GAR_HOST }} --quiet
+          echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"
 
       - name: Set Tag with SHA
         run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
