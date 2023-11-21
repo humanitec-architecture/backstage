@@ -1,5 +1,5 @@
 import React from 'react';
-import { FieldProps, FieldValidation } from '@rjsf/core';
+import { FieldProps, FieldValidation } from '@rjsf/utils';
 import FormControl from '@material-ui/core/FormControl';
 import { InputLabel, Input, FormHelperText, List, ListItem, Link } from '@material-ui/core';
 /*
@@ -15,7 +15,7 @@ export const ValidateHumanitecAppID = ({
     <FormControl
       margin="normal"
       required={required}
-      error={rawErrors?.length > 0 && !formData}
+      error={rawErrors && rawErrors?.length > 0 && !formData}
     >
       <InputLabel htmlFor="validateName">Name</InputLabel>
       <Input
