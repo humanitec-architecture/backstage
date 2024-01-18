@@ -25,7 +25,8 @@ env:
 {% endif %}
   BASE_ENVIRONMENT: 'development'
   ENVIRONMENT_TYPE: 'development'
-  SCORE_HUMANITEC_VERSION: '0.8.0'
+  SCORE_HUMANITEC_VERSION: '0.9.1'
+  HUMCTL_VERSION: '0.13.0'
   ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
   ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
 
@@ -39,28 +40,19 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v3
+      - uses: humanitec/setup-cli-action@v1
+        with:
+          version: ${{ env.HUMCTL_VERSION }}
       - name: Create Humanitec Env
         run: |
-            # Get deployment ID of the main development environment
-            curl \
-            -H "Content-Type: application/json" \
-            -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
-            https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.BASE_ENVIRONMENT }} \
-            | jq -r ".last_deploy.id" > deploy_id.txt
-
-            # Create a new environment for the PR
-            curl -X POST \
-            -H "Content-Type: application/json" \
-            -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
-            https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs \
-            --data-binary @- << EOF
-            {
-              "from_deploy_id": "$(cat deploy_id.txt)",
-              "id": "${{ env.ENVIRONMENT_ID }}",
-              "name": "${{ env.ENVIRONMENT_NAME }}",
-              "type": "${{ env.ENVIRONMENT_TYPE }}"
-            }
-            EOF
+          humctl create environment ${{ env.ENVIRONMENT_ID }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --name ${{ env.ENVIRONMENT_NAME }} \
+              -t ${{ env.ENVIRONMENT_TYPE }} \
+              --from ${{ env.BASE_ENVIRONMENT }} \
+              || true
       - uses: score-spec/setup-score@v2
         with:
           file: score-humanitec
@@ -108,17 +100,14 @@ jobs:
 
       - name: Inform Humanitec
         run: |-
-          curl \
-            --request POST 'https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/artefact-versions' \
-            --header 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
-            --header 'Content-Type: application/json' \
-            --data-raw '{
-                "name": "'$CONTAINER_REGISTRY/$IMAGE'",
-                "version": "'$TAG'",
-                "type": "container",
-                "commit": "'$GITHUB_SHA'",
-                "ref": "'$GITHUB_REF'"
-            }'
+          humctl create artefact-version \
+            --token ${{ secrets.HUMANITEC_TOKEN }} \
+            --org ${{ vars.HUMANITEC_ORG_ID }} \
+            -t container \
+            -n $CONTAINER_REGISTRY/$IMAGE \
+            --version $TAG \
+            --ref $GITHUB_REF \
+            --commit $GITHUB_SHA
 
       - name: Run Score
         run: |
@@ -142,30 +131,70 @@ jobs:
           IS_DONE=false
 
           while [ "$IS_DONE" = false ]; do
-            CURRENT_STATUS=$(curl \
-              -H "Content-Type: application/json" \
-              -H 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
-              https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.ENVIRONMENT_ID }} \
-              | jq -r ".last_deploy.status")
+            CURRENT_STATUS=$(humctl get deployment . -o json \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} \
+              | jq -r .status.status)
 
-            INPROGRESS="in progress"
-
-            if [ "$CURRENT_STATUS" = "$INPROGRESS" ]; then
+            if [ "$CURRENT_STATUS" = "in progress" ]; then
               echo "Deployment still in progress..."
               sleep 1
+            elif [ "$CURRENT_STATUS" = "failed" ]; then
+              echo "Deployment failed!"
+              IS_DONE=true
             else
               echo "Deployment complete!"
               IS_DONE=true
             fi
           done
+          if [ "$CURRENT_STATUS" = "failed" ]; then
+              exit 1
+          fi
       - name: Build Comment Message
+        if: ${{ always() }}
         run: |
           ENV_URL=$(jq -r ".metadata.url" score_output.json)
           DEPLOYMENT_ID=$(jq -r ".id" score_output.json)
-          DOMAINS=$(curl -H "Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}" https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs/${{ env.ENVIRONMENT_ID }}/resources | jq -r '. | map(. | select(.type == "dns")) | map((.res_id | split(".") | .[1]) + ": [" + .resource.host + "](https://" + .resource.host + ")") | join("\n")')
-
-          echo "## Deployment Complete for ${{ env.ENVIRONMENT_NAME }}! :tada:" >> pr_message.txt
-          echo "" >> pr_message.txt
+          DOMAINS=$(humctl get active-resources \
+                      --token ${{ secrets.HUMANITEC_TOKEN }} \
+                      --org ${{ vars.HUMANITEC_ORG_ID }} \
+                      --app ${{ env.APP_NAME }} \
+                      --env ${{ env.ENVIRONMENT_ID }} -o json \
+                      | jq -r '. | map(. | select(.metadata.type == "dns")) | map((.metadata.res_id | split(".") | .[1]) + ": [" + .status.resource.host + "](https://" + .status.resource.host + ")") | join("\n")')
+          
+          DEPLOYMENT_ERRORS=$(humctl get deployment-error \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} -o json)
+          if [ "$DEPLOYMENT_ERRORS" = "[]" ]; then
+            echo "## Deployment successfully completed for ${{ env.ENVIRONMENT_NAME }}! :tada:" >> pr_message.txt
+            echo "" >> pr_message.txt
+          else
+            echo "## Deployment failed for ${{ env.ENVIRONMENT_NAME }}! :x:" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Errors:" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```json' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "$DEPLOYMENT_ERRORS" | jq .[0].status.message -r >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "<details><summary>Errors details</summary>" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Errors details:" >> pr_message.txt
+            echo '```json' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "$DEPLOYMENT_ERRORS" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "</details>" >> pr_message.txt
+            echo "" >> pr_message.txt
+          fi
 
           echo "### [View in Humanitec]($ENV_URL)" >> pr_message.txt
           echo "Deployment ID: $DEPLOYMENT_ID" >> pr_message.txt
@@ -175,6 +204,20 @@ jobs:
           echo "" >> pr_message.txt
           echo "$DOMAINS" >> pr_message.txt
           echo "" >> pr_message.txt
+
+          echo "<details><summary>Deployment diff</summary>" >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "### Deployment diff:" >> pr_message.txt
+          echo '```json' >> pr_message.txt
+          echo "" >> pr_message.txt
+          humctl diff sets env/${{ env.ENVIRONMENT_ID }} env/${{ env.BASE_ENVIRONMENT }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} -o json >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo '```' >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "</details>" >> pr_message.txt
 
           echo "<details><summary>Score Output</summary>" >> pr_message.txt
           echo "" >> pr_message.txt
