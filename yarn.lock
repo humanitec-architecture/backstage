@@ -4389,15 +4389,15 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.1.6.tgz#22958c042e10b67463997bd6ea7115fe28cbcaf9"
   integrity sha512-OfX7E2oUDYxtBvsuS4e/jSn4Q9Qb6DzgeYtsAdkPZ47znpoNsMgZw0+tVijiv3uGNR6dgNlty6r9rzIzHjtd/A==
 
-"@frontside/backstage-plugin-humanitec-backend@^0.3.12":
-  version "0.3.12"
-  resolved "https://registry.yarnpkg.com/@frontside/backstage-plugin-humanitec-backend/-/backstage-plugin-humanitec-backend-0.3.12.tgz#964aa85eb1e6f15f329b0acd729db2d3a432b429"
-  integrity sha512-uw1gT0ADJ0rsaWZtczsKEgvELDyByZPT9UMloZu+37Fpa0zmpQPgI27QejyVTBZGLaOp2LBbKQA8bjZqNfNshw==
+"@frontside/backstage-plugin-humanitec-backend@^0.3.14":
+  version "0.3.14"
+  resolved "https://registry.yarnpkg.com/@frontside/backstage-plugin-humanitec-backend/-/backstage-plugin-humanitec-backend-0.3.14.tgz#e0e6e72718b239b6059453ee4c1a96134fdec498"
+  integrity sha512-rpLfLljfgNAK7aAw9MeefeMNA0Dv7HF+An3HFmKncrgMbuQHwka5OP5V5wDhafN5tEtqkXLTata2yIo2/pp1zQ==
   dependencies:
     "@backstage/backend-common" "^0.19.9"
     "@backstage/config" "^1.1.1"
     "@backstage/plugin-scaffolder-backend" "^1.19.1"
-    "@frontside/backstage-plugin-humanitec-common" "^0.3.10"
+    "@frontside/backstage-plugin-humanitec-common" "^0.3.12"
     "@types/express" "*"
     cross-fetch "3.1.5"
     express "^4.17.1"
@@ -4407,19 +4407,19 @@
     winston "^3.2.1"
     yn "^4.0.0"
 
-"@frontside/backstage-plugin-humanitec-common@^0.3.10":
-  version "0.3.10"
-  resolved "https://registry.yarnpkg.com/@frontside/backstage-plugin-humanitec-common/-/backstage-plugin-humanitec-common-0.3.10.tgz#842fc4347c6490bcd23262417a925981501ed034"
-  integrity sha512-cEeQEXeo9Xzraogp+YVaWhoP1UOnstyaWSaXPopcj7YdsCxr5laIKoRGGIykYCuzL6+1n2pa2l3DY3Uvi7VJzQ==
+"@frontside/backstage-plugin-humanitec-common@^0.3.12":
+  version "0.3.12"
+  resolved "https://registry.yarnpkg.com/@frontside/backstage-plugin-humanitec-common/-/backstage-plugin-humanitec-common-0.3.12.tgz#5ee15bd53e94cf0d742d695d080a4eddf184b507"
+  integrity sha512-0x1IkymfeIQo8XKfz/s439vCvAdbPz4SpY7vfCSHC0MFNK/Tz8LQYbu18j6T0OrwksFWxoVL+yzvACJCnZJDBA==
   dependencies:
     cross-fetch "3.1.5"
     exponential-backoff "^3.1.0"
     zod "^3.17.3"
 
-"@frontside/backstage-plugin-humanitec@^0.3.12":
-  version "0.3.12"
-  resolved "https://registry.yarnpkg.com/@frontside/backstage-plugin-humanitec/-/backstage-plugin-humanitec-0.3.12.tgz#c6f1f0485db56e8b63c870093803409f65be613b"
-  integrity sha512-4DmKUnA1EyeV+iFEd9GKjf/HKXYoYpLO4ueK8//YKddyIgvkk0TWGpriS9GyiVruMQGnWTMXcCcAPEyuMCWR1A==
+"@frontside/backstage-plugin-humanitec@^0.3.14":
+  version "0.3.14"
+  resolved "https://registry.yarnpkg.com/@frontside/backstage-plugin-humanitec/-/backstage-plugin-humanitec-0.3.14.tgz#202a19105a5181ff858343124ada2fd52bb3fae1"
+  integrity sha512-DFZcALWUPsTvG96OcTkbXwmFKB0UvWm7qM12Pn0TDiekILF91QRT40I0FxYr/USB8yEgppkxZO/ksaJT2wAKjQ==
   dependencies:
     "@backstage/catalog-model" "^1.4.3"
     "@backstage/core-components" "^0.13.8"
@@ -4430,6 +4430,7 @@
     "@material-ui/icons" "^4.9.1"
     "@material-ui/lab" "4.0.0-alpha.57"
     "@types/lodash.get" "^4.4.7"
+    event-source-polyfill "^1.0.31"
     lodash.get "^4.4.2"
     react-use "^17.2.4"
 
@@ -9329,7 +9330,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     "@backstage/plugin-techdocs-react" "^1.1.14"
     "@backstage/plugin-user-settings" "^0.7.14"
     "@backstage/theme" "^0.5.0"
-    "@frontside/backstage-plugin-humanitec" "^0.3.12"
+    "@frontside/backstage-plugin-humanitec" "^0.3.14"
     "@material-ui/core" "^4.12.2"
     "@material-ui/icons" "^4.9.1"
     "@rjsf/utils" "^5.14.2"
