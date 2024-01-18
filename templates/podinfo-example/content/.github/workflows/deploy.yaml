@@ -22,6 +22,12 @@ env:
   GCP_GAR_HOST: ${{ vars.GCP_GAR_HOST }}
   GCP_GAR_NAME: ${{ vars.GCP_GAR_NAME }}
 {% endraw %}
+{%- elif values.cloudProvider === "azure" -%}
+{% raw %}
+  ACR_PUSH_SP_ID: ${{ vars.ACR_PUSH_SP_ID }}
+  ACR_PUSH_SP_PASSWORD: ${{ vars.ACR_PUSH_SP_PASSWORD }}
+  ACR_SERVER_NAME: ${{ vars.ACR_SERVER_NAME }}
+{% endraw %}
 {%- else -%}
 # Unknown cloud provider: ${{ values.cloudProvider }}
 {% endif %}
@@ -73,6 +79,16 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ env.GCP_GAR_HOST }} --quiet
           echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"
+{% endraw %}
+{%- elif values.cloudProvider === "azure" -%}
+{% raw %}
+      - name: login to azure acr
+        run: |
+          echo "${{ secrets.ACR_PUSH_SP_PASSWORD }}" | docker login \
+            ${{ secrets.ACR_SERVER_NAME }} \
+            -u ${{ secrets.ACR_PUSH_SP_ID }} \
+            --password-stdin
+          echo "CONTAINER_REGISTRY=${{ env.ACR_SERVER_NAME }}" >> "$GITHUB_ENV"
 {% endraw %}
 {% endif %}
 {% raw %}
