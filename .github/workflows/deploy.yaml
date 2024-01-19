@@ -8,7 +8,8 @@ concurrency: ${{ github.ref }}
 
 env:
   IMAGE: backstage
-  SCORE_HUMANITEC_VERSION: '0.8.0'
+  SCORE_HUMANITEC_VERSION: '0.9.1'
+  HUMCTL_VERSION: '0.13.0'
   # CLOUD_PROVIDER: aws
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
@@ -93,19 +94,20 @@ jobs:
           docker tag backstage $CONTAINER_REGISTRY/$IMAGE:$TAG
           docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
 
+      - uses: humanitec/setup-cli-action@v1
+        with:
+          version: ${{ env.HUMCTL_VERSION }}
+
       - name: Inform Humanitec
         run: |-
-          curl \
-            --request POST 'https://api.humanitec.io/orgs/${{ vars.HUMANITEC_ORG_ID }}/artefact-versions' \
-            --header 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
-            --header 'Content-Type: application/json' \
-            --data-raw '{
-                "name": "'$CONTAINER_REGISTRY/$IMAGE'",
-                "version": "'$TAG'",
-                "type": "container",
-                "commit": "'$GITHUB_SHA'",
-                "ref": "'$GITHUB_REF'"
-            }'
+          humctl create artefact-version \
+            --token ${{ secrets.HUMANITEC_TOKEN }} \
+            --org ${{ vars.HUMANITEC_ORG_ID }} \
+            -t container \
+            -n $CONTAINER_REGISTRY/$IMAGE \
+            --version $TAG \
+            --ref $GITHUB_REF \
+            --commit $GITHUB_SHA
 
       - uses: score-spec/setup-score@v2
         with:
