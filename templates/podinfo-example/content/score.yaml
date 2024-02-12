@@ -11,7 +11,7 @@ service:
 
 containers:
   frontend:
-    image: # Set by pipeline
+    image: . # Set by pipeline
     variables:
       Hello: World
 

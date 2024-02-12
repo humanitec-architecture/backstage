@@ -25,8 +25,8 @@ env:
 {% endif %}
   BASE_ENVIRONMENT: 'development'
   ENVIRONMENT_TYPE: 'development'
-  SCORE_HUMANITEC_VERSION: '0.9.1'
-  HUMCTL_VERSION: '0.13.0'
+  SCORE_HUMANITEC_VERSION: '0.10.0'
+  HUMCTL_VERSION: '0.13.4'
   ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
   ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
 
@@ -121,7 +121,7 @@ jobs:
               -f score.yaml \
               --extensions humanitec.score.yaml \
               --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
-              --property containers.frontend.image=$CONTAINER_REGISTRY/$IMAGE:$TAG \
+              --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
               --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)" \
               | tee score_output.json
       - name: Wait for deployment
