@@ -23,7 +23,7 @@ jobs:
   score-humanitec:
     runs-on: ubuntu-latest
     env:
-      SCORE_HUMANITEC_VERSION: '0.8.0'
+      SCORE_HUMANITEC_VERSION: '0.10.0'
     steps:
       - name: checkout code
         uses: actions/checkout@v3
@@ -38,18 +38,18 @@ jobs:
               --env development \
               -f score.yaml \
               --extensions humanitec.score.yaml \
-              --property containers.backstage.image=backstage:latest
+              --image backstage:latest
       - name: score-humanitec run - node-service
         run: |
           score-humanitec run \
               --env development \
               -f templates/node-service/content/score.yaml \
               --extensions templates/node-service/content/humanitec.score.yaml \
-              --property containers.frontend.image=node-service:latest
+              --image node-service:latest
       - name: score-humanitec run - podinfo
         run: |
           score-humanitec run \
               --env development \
               -f templates/podinfo-example/content/score.yaml \
               --extensions templates/podinfo-example/content/humanitec.score.yaml \
-              --property containers.frontend.image=podinfo:latest
+              --image podinfo:latest
