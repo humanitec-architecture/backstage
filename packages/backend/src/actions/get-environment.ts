@@ -21,6 +21,9 @@ export function createGetEnvironmentAction({ orgId, awsRegion, cloudProvider }: 
           },
           cloudProvider: {
             type: 'string'
+          },
+          githubOIDCCustomization: {
+            type: 'object'
           }
         }
       }
@@ -29,6 +32,15 @@ export function createGetEnvironmentAction({ orgId, awsRegion, cloudProvider }: 
       ctx.output('orgId', orgId);
       ctx.output('awsRegion', awsRegion);
       ctx.output('cloudProvider', cloudProvider);
+
+      let githubOIDCCustomization
+      if (cloudProvider === 'azure') {
+        githubOIDCCustomization = {
+          "useDefault": false,
+          "includeClaimKeys": ["repository_owner"]
+        }
+      }
+      ctx.output('githubOIDCCustomization', githubOIDCCustomization);
     },
   });
 }
