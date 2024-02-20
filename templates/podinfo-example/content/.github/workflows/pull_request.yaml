@@ -13,6 +13,13 @@ env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
 {% endraw %}
+{%- elif values.cloudProvider === "azure" -%}
+{% raw %}
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+{% endraw %}
 {%- elif values.cloudProvider === "gcp" -%}
 {% raw %}
   GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -79,6 +86,20 @@ jobs:
           echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+{% endraw %}
+{%- elif values.cloudProvider === "azure" -%}
+{% raw %}
+      - name: configure azure credentials
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: login to azure acr
+        run: |
+          az acr login -n ${{ env.AZURE_ACR_NAME }}
+          echo "CONTAINER_REGISTRY=${{ env.AZURE_ACR_NAME }}.azurecr.io" >> "$GITHUB_ENV"
 {% endraw %}
 {%- elif values.cloudProvider === "gcp" -%}
 {% raw %}
@@ -163,7 +184,7 @@ jobs:
                       --app ${{ env.APP_NAME }} \
                       --env ${{ env.ENVIRONMENT_ID }} -o json \
                       | jq -r '. | map(. | select(.metadata.type == "dns")) | map((.metadata.res_id | split(".") | .[1]) + ": [" + .status.resource.host + "](https://" + .status.resource.host + ")") | join("\n")')
-          
+
           DEPLOYMENT_ERRORS=$(humctl get deployment-error \
               --token ${{ secrets.HUMANITEC_TOKEN }} \
               --org ${{ vars.HUMANITEC_ORG_ID }} \

@@ -13,6 +13,11 @@ env:
   # CLOUD_PROVIDER: aws
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+  # CLOUD_PROVIDER: azure
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
   # CLOUD_PROVIDER: gcp
   GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
   GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
@@ -29,7 +34,7 @@ jobs:
       contents: write
 
     env:
-      DOCKER_BUILDKIT: "1"
+      DOCKER_BUILDKIT: '1'
 
     if: ${{ vars.CLOUD_PROVIDER }}
 
@@ -48,7 +53,6 @@ jobs:
         with:
           file_pattern: 'catalog-info.yaml templates/*.yaml'
 
-
       - if: ${{ vars.CLOUD_PROVIDER == 'aws' }}
         name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -64,11 +68,25 @@ jobs:
           mask-password: 'true'
 
       - if: ${{ vars.CLOUD_PROVIDER == 'aws' }}
-        name: "set CONTAINER_REGISTRY env var"
+        name: set CONTAINER_REGISTRY env var
         run: |
           echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+      - if: ${{ vars.CLOUD_PROVIDER == 'azure' }}
+        name: configure azure credentials
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - if: ${{ vars.CLOUD_PROVIDER == 'azure' }}
+        name: login to azure acr
+        run: |
+          az acr login -n ${{ env.AZURE_ACR_NAME }}
+          echo "CONTAINER_REGISTRY=${{ env.AZURE_ACR_NAME }}.azurecr.io" >> "$GITHUB_ENV"
 
       - if: ${{ vars.CLOUD_PROVIDER == 'gcp' }}
         name: configure gcp credentials

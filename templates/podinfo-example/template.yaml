@@ -59,6 +59,7 @@ spec:
         repoUrl: github.com?owner=humanitec-architecture&repo=${{ parameters.componentName }}
         repoVisibility: public
         protectDefaultBranch: false
+        oidcCustomization: ${{ steps.environment.output.githubOIDCCustomization }}
 
     - id: humanitec-create-app
       name: Create Humanitec App
