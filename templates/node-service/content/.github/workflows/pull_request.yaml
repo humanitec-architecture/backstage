@@ -149,10 +149,18 @@ jobs:
         run: |
           sleep 1
 
+          DEPLOYMENT_ID=$(humctl get deployment . -o json \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} \
+              | jq -r .metadata.id)
+          echo "DEPLOYMENT_ID=${DEPLOYMENT_ID}" >> ${{ github.env }}
+
           IS_DONE=false
 
           while [ "$IS_DONE" = false ]; do
-            CURRENT_STATUS=$(humctl get deployment . -o json \
+            CURRENT_STATUS=$(humctl get deployment ${DEPLOYMENT_ID} -o json \
               --token ${{ secrets.HUMANITEC_TOKEN }} \
               --org ${{ vars.HUMANITEC_ORG_ID }} \
               --app ${{ env.APP_NAME }} \
@@ -176,8 +184,7 @@ jobs:
       - name: Build Comment Message
         if: ${{ always() }}
         run: |
-          ENV_URL=$(jq -r ".metadata.url" score_output.json)
-          DEPLOYMENT_ID=$(jq -r ".id" score_output.json)
+          ENV_URL="https://app.humanitec.io/orgs/"${{ vars.HUMANITEC_ORG_ID }}"/apps/"${{ env.APP_NAME }}"/envs/"${{ env.ENVIRONMENT_ID }}"/deploys/"${DEPLOYMENT_ID}
           DOMAINS=$(humctl get active-resources \
                       --token ${{ secrets.HUMANITEC_TOKEN }} \
                       --org ${{ vars.HUMANITEC_ORG_ID }} \
