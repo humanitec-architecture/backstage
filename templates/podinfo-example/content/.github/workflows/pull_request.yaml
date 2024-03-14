@@ -240,6 +240,39 @@ jobs:
           echo "" >> pr_message.txt
           echo "</details>" >> pr_message.txt
 
+          if [ "$DEPLOYMENT_ERRORS" = "[]" ]; then
+            echo "<details><summary>Active Resources Usage</summary>" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Active Resources Usage:" >> pr_message.txt
+            echo '```none' >> pr_message.txt
+            echo "" >> pr_message.txt
+            humctl resources active-resource-usage \
+                --env ${{ env.ENVIRONMENT_ID }} \
+                --token ${{ secrets.HUMANITEC_TOKEN }} \
+                --org ${{ secrets.HUMANITEC_ORG }} \
+                --app ${{ vars.APP_NAME }} >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "</details>" >> pr_message.txt
+          fi
+          if [ "$DEPLOYMENT_ERRORS" = "[]" ]; then
+            echo "<details><summary>Resources Graph</summary>" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Resources Graph:" >> pr_message.txt
+            echo '```none' >> pr_message.txt
+            echo "" >> pr_message.txt
+            humctl resources graph \
+                --env ${{ env.ENVIRONMENT_ID }} \
+                --token ${{ secrets.HUMANITEC_TOKEN }} \
+                --org ${{ secrets.HUMANITEC_ORG }} \
+                --app ${{ vars.APP_NAME }} >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "</details>" >> pr_message.txt
+          fi
+          
           echo "<details><summary>Score Output</summary>" >> pr_message.txt
           echo "" >> pr_message.txt
           echo "### Score Output:" >> pr_message.txt
