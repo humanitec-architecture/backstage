@@ -256,8 +256,8 @@ jobs:
             humctl resources active-resource-usage \
                 --env ${{ env.ENVIRONMENT_ID }} \
                 --token ${{ secrets.HUMANITEC_TOKEN }} \
-                --org ${{ secrets.HUMANITEC_ORG }} \
-                --app ${{ vars.APP_NAME }} >> pr_message.txt
+                --org ${{ vars.HUMANITEC_ORG_ID }} \
+                --app ${{ env.APP_NAME }} >> pr_message.txt
             echo "" >> pr_message.txt
             echo '```' >> pr_message.txt
             echo "" >> pr_message.txt
@@ -272,8 +272,8 @@ jobs:
             humctl resources graph \
                 --env ${{ env.ENVIRONMENT_ID }} \
                 --token ${{ secrets.HUMANITEC_TOKEN }} \
-                --org ${{ secrets.HUMANITEC_ORG }} \
-                --app ${{ vars.APP_NAME }} >> pr_message.txt
+                --org ${{ vars.HUMANITEC_ORG_ID }} \
+                --app ${{ env.APP_NAME }} >> pr_message.txt
             echo "" >> pr_message.txt
             echo '```' >> pr_message.txt
             echo "" >> pr_message.txt
