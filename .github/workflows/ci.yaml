@@ -23,7 +23,7 @@ jobs:
   score-humanitec:
     runs-on: ubuntu-latest
     env:
-      SCORE_HUMANITEC_VERSION: '0.10.0'
+      SCORE_HUMANITEC_VERSION: '0.10.1'
     steps:
       - name: checkout code
         uses: actions/checkout@v3

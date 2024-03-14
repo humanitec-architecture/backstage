@@ -7,7 +7,7 @@ on:
 env:
   APP_NAME: ${{ values.name }}
   ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
-  HUMCTL_VERSION: '0.13.0'
+  HUMCTL_VERSION: '0.15.0'
 
 {% raw %}
 jobs:

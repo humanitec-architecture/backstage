@@ -32,8 +32,8 @@ env:
 {% endif %}
   BASE_ENVIRONMENT: 'development'
   ENVIRONMENT_TYPE: 'development'
-  SCORE_HUMANITEC_VERSION: '0.10.0'
-  HUMCTL_VERSION: '0.13.4'
+  SCORE_HUMANITEC_VERSION: '0.10.2'
+  HUMCTL_VERSION: '0.15.0'
   ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
   ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
 
