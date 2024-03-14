@@ -8,8 +8,8 @@ concurrency: ${{ github.ref }}
 
 env:
   IMAGE: backstage
-  SCORE_HUMANITEC_VERSION: '0.10.0'
-  HUMCTL_VERSION: '0.13.4'
+  SCORE_HUMANITEC_VERSION: '0.10.2'
+  HUMCTL_VERSION: '0.15.0'
   # CLOUD_PROVIDER: aws
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
