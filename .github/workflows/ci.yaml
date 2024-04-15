@@ -33,18 +33,18 @@ jobs:
       - name: humctl score validate - backstage
         run: |
           humctl score validate score.yaml \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
               --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
               --strict
       - name: humctl score validate - node-service
         run: |
           humctl score validate templates/node-service/content/score.yaml \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
               --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
               --strict
       - name: humctl score validate - podinfo
         run: |
           humctl score validate templates/podinfo-example/content/score.yaml \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
               --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
               --strict
