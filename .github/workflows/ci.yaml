@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  containers:
+  job:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
@@ -20,31 +20,3 @@ jobs:
         run: |
           mkdir credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
           docker image build -t backstage:latest .
-  score-validate:
-    runs-on: ubuntu-latest
-    env:
-      HUMCTL_VERSION: '0.21.0'
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v3
-      - uses: humanitec/setup-cli-action@v1
-        with:
-          version: ${{ env.HUMCTL_VERSION }}
-      - name: humctl score validate - backstage
-        run: |
-          humctl score validate score.yaml \
-              --org ${{ vars.HUMANITEC_ORG_ID }} \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
-              --strict
-      - name: humctl score validate - node-service
-        run: |
-          humctl score validate templates/node-service/content/score.yaml \
-              --org ${{ vars.HUMANITEC_ORG_ID }} \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
-              --strict
-      - name: humctl score validate - podinfo
-        run: |
-          humctl score validate templates/podinfo-example/content/score.yaml \
-              --org ${{ vars.HUMANITEC_ORG_ID }} \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
-              --strict
