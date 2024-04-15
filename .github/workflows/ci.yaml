@@ -20,36 +20,31 @@ jobs:
         run: |
           mkdir credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
           docker image build -t backstage:latest .
-  score-humanitec:
+  score-validate:
     runs-on: ubuntu-latest
     env:
-      SCORE_HUMANITEC_VERSION: '0.10.1'
+      HUMCTL_VERSION: '0.21.0'
     steps:
       - name: checkout code
         uses: actions/checkout@v3
-      - name: install score-humanitec
-        uses: score-spec/setup-score@v2
+      - uses: humanitec/setup-cli-action@v1
         with:
-          file: score-humanitec
-          version: ${{ env.SCORE_HUMANITEC_VERSION }}
-      - name: score-humanitec run - backstage
+          version: ${{ env.HUMCTL_VERSION }}
+      - name: humctl score validate - backstage
         run: |
-          score-humanitec run \
-              --env development \
-              -f score.yaml \
-              --extensions humanitec.score.yaml \
-              --image backstage:latest
-      - name: score-humanitec run - node-service
+          humctl score validate score.yaml \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --strict
+      - name: humctl score validate - node-service
         run: |
-          score-humanitec run \
-              --env development \
-              -f templates/node-service/content/score.yaml \
-              --extensions templates/node-service/content/humanitec.score.yaml \
-              --image node-service:latest
-      - name: score-humanitec run - podinfo
+          humctl score validate templates/node-service/content/score.yaml \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --strict
+      - name: humctl score validate - podinfo
         run: |
-          score-humanitec run \
-              --env development \
-              -f templates/podinfo-example/content/score.yaml \
-              --extensions templates/podinfo-example/content/humanitec.score.yaml \
-              --image podinfo:latest
+          humctl score validate templates/podinfo-example/content/score.yaml \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --strict

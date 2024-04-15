@@ -8,8 +8,7 @@ concurrency: ${{ github.ref }}
 
 env:
   IMAGE: backstage
-  SCORE_HUMANITEC_VERSION: '0.10.2'
-  HUMCTL_VERSION: '0.15.0'
+  HUMCTL_VERSION: '0.21.0'
   # CLOUD_PROVIDER: aws
   AWS_REGION: ${{ vars.AWS_REGION }}
   AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
@@ -127,16 +126,9 @@ jobs:
             --ref $GITHUB_REF \
             --commit $GITHUB_SHA
 
-      - uses: score-spec/setup-score@v2
-        with:
-          file: score-humanitec
-          version: ${{ env.SCORE_HUMANITEC_VERSION }}
-
       - name: Run Score
         run: |
-          score-humanitec delta \
-            --retry \
-            --deploy \
+          humctl score deploy \
             --token ${{ secrets.HUMANITEC_TOKEN }} \
             --org ${{ vars.HUMANITEC_ORG_ID }} \
             --app backstage \

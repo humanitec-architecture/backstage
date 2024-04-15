@@ -32,8 +32,7 @@ env:
 {%- else -%}
 # Unknown cloud provider: ${{ values.cloudProvider }}
 {% endif %}
-  SCORE_HUMANITEC_VERSION: '0.10.2'
-  HUMCTL_VERSION: '0.15.0'
+  HUMCTL_VERSION: '0.21.0'
   APP_NAME: ${{ values.name }}
 
 {% raw %}
@@ -116,16 +115,9 @@ jobs:
             --ref $GITHUB_REF \
             --commit $GITHUB_SHA
 
-      - uses: score-spec/setup-score@v2
-        with:
-          file: score-humanitec
-          version: ${{ env.SCORE_HUMANITEC_VERSION }}
-
       - name: Deploy using Score
         run: |
-          score-humanitec delta \
-            --retry \
-            --deploy \
+          humctl score deploy \
             --token ${{ secrets.HUMANITEC_TOKEN }} \
             --org ${{ vars.HUMANITEC_ORG_ID }} \
             --app ${{ env.APP_NAME }} \
