@@ -32,8 +32,7 @@ env:
 {% endif %}
   BASE_ENVIRONMENT: 'development'
   ENVIRONMENT_TYPE: 'development'
-  SCORE_HUMANITEC_VERSION: '0.10.2'
-  HUMCTL_VERSION: '0.15.0'
+  HUMCTL_VERSION: '0.21.0'
   ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
   ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
 
@@ -60,10 +59,6 @@ jobs:
               -t ${{ env.ENVIRONMENT_TYPE }} \
               --from ${{ env.BASE_ENVIRONMENT }} \
               || true
-      - uses: score-spec/setup-score@v2
-        with:
-          file: score-humanitec
-          version: ${{ env.SCORE_HUMANITEC_VERSION }}
       - name: Set Tag with SHA
         run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
 {% endraw %}
@@ -132,9 +127,7 @@ jobs:
 
       - name: Run Score
         run: |
-          score-humanitec delta \
-              --retry \
-              --deploy \
+          humctl score deploy \
               --token ${{ secrets.HUMANITEC_TOKEN }} \
               --org ${{ vars.HUMANITEC_ORG_ID }} \
               --app ${{ env.APP_NAME }} \
@@ -143,8 +136,7 @@ jobs:
               --extensions humanitec.score.yaml \
               --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
               --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
-              --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)" \
-              | tee score_output.json
+              --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)"
       - name: Wait for deployment
         run: |
           sleep 1
@@ -279,17 +271,6 @@ jobs:
             echo "" >> pr_message.txt
             echo "</details>" >> pr_message.txt
           fi
-          
-          echo "<details><summary>Score Output</summary>" >> pr_message.txt
-          echo "" >> pr_message.txt
-          echo "### Score Output:" >> pr_message.txt
-          echo '```json' >> pr_message.txt
-          echo "" >> pr_message.txt
-          cat score_output.json >> pr_message.txt
-          echo "" >> pr_message.txt
-          echo '```' >> pr_message.txt
-          echo "" >> pr_message.txt
-          echo "</details>" >> pr_message.txt
 
           cat pr_message.txt
       - name: Comment PR
