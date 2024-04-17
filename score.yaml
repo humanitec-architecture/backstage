@@ -46,16 +46,15 @@ containers:
     files:
       - target: /app/credentials/github-app-backstage-humanitec-credentials.yaml
         mode: "0644"
-        content:
-          - |
-            # Name: Backstage-Humanitec
-            appId: ${values.GITHUB_APP_ID}
-            webhookUrl: https://${externals.dns.host}
-            clientId: ${values.GITHUB_APP_CLIENT_ID}
-            clientSecret: ${values.GITHUB_APP_CLIENT_SECRET}
-            webhookSecret: ${values.GITHUB_APP_WEBHOOK_SECRET}
-            privateKey: |
-              ${values.GITHUB_APP_PRIVATE_KEY}
+        content: |
+          # Name: Backstage-Humanitec
+          appId: ${values.GITHUB_APP_ID}
+          webhookUrl: https://${externals.dns.host}
+          clientId: ${values.GITHUB_APP_CLIENT_ID}
+          clientSecret: ${values.GITHUB_APP_CLIENT_SECRET}
+          webhookSecret: ${values.GITHUB_APP_WEBHOOK_SECRET}
+          privateKey: |
+            ${values.GITHUB_APP_PRIVATE_KEY}
 
 resources:
   dns:
