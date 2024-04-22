@@ -13,6 +13,10 @@ backend:
       user: ${POSTGRES_USER}
       password: ${POSTGRES_PASSWORD}
 
+auth:
+  providers:
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
 
 catalog:
   rules:

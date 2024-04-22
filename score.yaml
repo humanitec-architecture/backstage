@@ -29,6 +29,7 @@ containers:
         memory: 64Mi
     variables:
       APP_CONFIG_app_baseUrl: https://${resources.dns.host}
+      APP_CONFIG_backend_auth_keys: ${values.APP_CONFIG_backend_auth_keys}
       APP_CONFIG_backend_baseUrl: https://${resources.dns.host}
       APP_CONFIG_backend_cors_origin: https://${resources.dns.host}
       GITHUB_ORG_ID: ${values.GITHUB_ORG_ID}
