@@ -35,7 +35,8 @@ techdocs:
     type: 'local'
 
 auth:
-  providers: {}
+  providers:
+    guest: {}
 
 scaffolder:
 
