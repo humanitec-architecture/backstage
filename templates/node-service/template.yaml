@@ -30,14 +30,6 @@ spec:
       id: environment
       action: backend:get-environment
 
-    - id: create-ecr
-      name: Create ECR Rrepository
-      action: roadiehq:aws:ecr:create
-      if: ${{ steps.environment.output.cloudProvider == 'aws' }}
-      input:
-        repoName: ${{ parameters.componentName }}
-        region: ${{ steps.environment.output.awsRegion }}
-
     - id: fetch-base
       name: Fetch Base
       action: fetch:template
