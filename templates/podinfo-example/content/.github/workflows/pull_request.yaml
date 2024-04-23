@@ -80,7 +80,7 @@ jobs:
         id: create-repo
         uses: int128/create-ecr-repository-action@v1
         with:
-          repository: ${{ env.IMAGE }}  
+          repository: ${{ env.IMAGE }}
 
       - name: "set CONTAINER_REGISTRY env var"
         run: |
