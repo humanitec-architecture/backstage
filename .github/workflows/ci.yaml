@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  job:
+  containers:
     runs-on: ubuntu-latest
     steps:
       - name: checkout code
@@ -20,3 +20,33 @@ jobs:
         run: |
           mkdir credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
           docker image build -t backstage:latest .
+
+  validate-score:
+    runs-on: ubuntu-latest
+    env:
+      HUMCTL_VERSION: '0.23.1'
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+      - uses: humanitec/setup-cli-action@v1
+        with:
+          version: ${{ env.HUMCTL_VERSION }}
+      - name: humctl score validate - backstage
+        run: |
+          humctl score validate --local --strict \
+            score.yaml
+      - name: humctl score validate - node-service
+        run: |
+          score_file=templates/node-service/content/score.yaml
+          # Replace template string with actual values, sadly no better way yet
+          # https://github.com/backstage/backstage/issues/13668
+          sed -i -e 's/${{ '${{ values.name | dump }}' }}/test-workload/g' "$score_file"
+          humctl score validate --local --strict \
+            "$score_file"
+      - name: humctl score validate - podinfo
+        run: |
+          score_file=templates/podinfo-example/content/score.yaml
+          # Replace template string with actual values
+          sed -i -e 's/${{ '${{ values.name | dump }}' }}/test-workload/g' "$score_file"
+          humctl score validate --local --strict \
+            "$score_file"
