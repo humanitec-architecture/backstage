@@ -41,7 +41,6 @@ containers:
       POSTGRES_PASSWORD: ${resources.db.password}
       POSTGRES_PORT: ${resources.db.port}
       POSTGRES_USER: ${resources.db.username}
-      AWS_DEFAULT_REGION: ${values.AWS_DEFAULT_REGION}
       CLOUD_PROVIDER: ${values.CLOUD_PROVIDER}
 
     files:
