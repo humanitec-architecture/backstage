@@ -1,4 +1,4 @@
-import { createRouter } from '@frontside/backstage-plugin-humanitec-backend';
+import { createRouter } from '@humanitec/backstage-plugin-backend';
 import { Router } from 'express';
 import { PluginEnvironment } from '../types';
 
