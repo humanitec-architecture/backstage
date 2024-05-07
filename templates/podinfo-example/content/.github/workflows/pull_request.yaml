@@ -142,46 +142,17 @@ jobs:
               --extensions humanitec.score.yaml \
               --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
               --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
-              --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)"
-      - name: Wait for deployment
-        run: |
-          sleep 1
-
-          DEPLOYMENT_ID=$(humctl get deployment . -o json \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
-              --org ${{ vars.HUMANITEC_ORG_ID }} \
-              --app ${{ env.APP_NAME }} \
-              --env ${{ env.ENVIRONMENT_ID }} \
-              | jq -r .metadata.id)
-          echo "DEPLOYMENT_ID=${DEPLOYMENT_ID}" >> ${{ github.env }}
-
-          IS_DONE=false
-
-          while [ "$IS_DONE" = false ]; do
-            CURRENT_STATUS=$(humctl get deployment ${DEPLOYMENT_ID} -o json \
-              --token ${{ secrets.HUMANITEC_TOKEN }} \
-              --org ${{ vars.HUMANITEC_ORG_ID }} \
-              --app ${{ env.APP_NAME }} \
-              --env ${{ env.ENVIRONMENT_ID }} \
-              | jq -r .status.status)
-
-            if [ "$CURRENT_STATUS" = "in progress" ]; then
-              echo "Deployment still in progress..."
-              sleep 1
-            elif [ "$CURRENT_STATUS" = "failed" ]; then
-              echo "Deployment failed!"
-              IS_DONE=true
-            else
-              echo "Deployment complete!"
-              IS_DONE=true
-            fi
-          done
-          if [ "$CURRENT_STATUS" = "failed" ]; then
-              exit 1
-          fi
+              --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)" \
+              --wait
       - name: Build Comment Message
         if: ${{ always() }}
         run: |
+          DEPLOYMENT_ID=$(humctl get deployment . -o json \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID}} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} \
+              | jq -r .metadata.id)
           ENV_URL="https://app.humanitec.io/orgs/"${{ vars.HUMANITEC_ORG_ID }}"/apps/"${{ env.APP_NAME }}"/envs/"${{ env.ENVIRONMENT_ID }}"/deploys/"${DEPLOYMENT_ID}
           DOMAINS=$(humctl get active-resources \
                       --token ${{ secrets.HUMANITEC_TOKEN }} \
