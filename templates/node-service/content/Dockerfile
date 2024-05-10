@@ -1,15 +1,11 @@
-FROM alpine:3.18.3
-
-# Install nodejs
+FROM alpine:3.19.1 as builder
 RUN apk add --no-cache nodejs npm
-
 COPY package*.json ./
-RUN npm install
+RUN npm install --only=prod
 
+FROM alpine:3.19.1
+RUN apk add --no-cache nodejs
+COPY --from=builder /node_modules ./node_modules
 COPY index.js index.js
-
-# Expose port 3000
 EXPOSE 3000
-
-# Run the app
 CMD ["node", "index.js"]
