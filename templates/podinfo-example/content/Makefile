@@ -11,16 +11,15 @@ help:
 .PHONY: .FORCE
 .FORCE:
 
-WORKLOAD_NAME = node-workload
-CONTAINER_NAME = node-service
+WORKLOAD_NAME = podinfo-workload
+CONTAINER_NAME = podinfo
 CONTAINER_IMAGE = ${CONTAINER_NAME}:test
 
 compose.yaml: score.yaml
 	score-compose init \
 		--no-sample
 	score-compose generate score.yaml \
-		--build '${CONTAINER_NAME}={"context":".","tags":["${CONTAINER_IMAGE}"]}' \
-		--override-property containers.${CONTAINER_NAME}.variables.MESSAGE="Hello, Compose!"
+		--build '${CONTAINER_NAME}={"context":".","tags":["${CONTAINER_IMAGE}"]}'
 
 ## Generate a compose.yaml file from the score spec and launch it.
 .PHONY: compose-up
