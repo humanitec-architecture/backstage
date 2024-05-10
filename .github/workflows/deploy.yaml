@@ -38,7 +38,7 @@ jobs:
     if: ${{ vars.CLOUD_PROVIDER }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Configure correct org after copying from template
         run: |
@@ -48,7 +48,7 @@ jobs:
           # Ensure correct humanitec org
           sed -i 's/humanitec-architecture/${{ vars.HUMANITEC_ORG_ID }}/g' catalog-info.yaml
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           file_pattern: 'catalog-info.yaml templates/*.yaml'
 
@@ -75,7 +75,7 @@ jobs:
 
       - if: ${{ vars.CLOUD_PROVIDER == 'azure' }}
         name: configure azure credentials
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}
           tenant-id: ${{ env.AZURE_TENANT_ID }}
