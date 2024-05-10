@@ -18,7 +18,8 @@ compose.yaml: score.yaml
 	score-compose init \
 		--no-sample
 	score-compose generate score.yaml \
-		--build '${CONTAINER_NAME}={"context":".","tags":["${CONTAINER_IMAGE}"]}'
+		--build '${CONTAINER_NAME}={"context":".","tags":["${CONTAINER_IMAGE}"]}' \
+		--override-property containers.${CONTAINER_NAME}.variables.MESSAGE="Hello, Compose!"
 
 ## Generate a compose.yaml file from the score spec and launch it.
 .PHONY: compose-up
