@@ -1,7 +1,7 @@
 apiVersion: score.dev/v1b1
 
 metadata:
-  name: node-test
+  name: ${{ values.name | dump }}
 
 # Define the ports that this service exposes
 service:
@@ -12,7 +12,7 @@ service:
 
 # Define the containers that make up this service
 containers:
-  node-test:
+  node-service:
     image: . # Set by pipeline
     variables:
       PORT: "3000"

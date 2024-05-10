@@ -11,7 +11,7 @@ help:
 .PHONY: .FORCE
 .FORCE:
 
-CONTAINER_NAME = node-test
+CONTAINER_NAME = node-service
 CONTAINER_IMAGE = ${CONTAINER_NAME}:test
 
 compose.yaml: score.yaml
