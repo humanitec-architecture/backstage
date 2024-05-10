@@ -42,4 +42,7 @@ backend.add(import('@backstage/plugin-search-backend-module-techdocs/alpha'));
 backend.add(import('@humanitec/backstage-plugin-backend'));
 backend.add(import('@humanitec/backstage-plugin-scaffolder-backend-module'));
 
+// backend:get-environment used in humanitec templates
+backend.add(import('./actions/get-environment'));
+
 backend.start();

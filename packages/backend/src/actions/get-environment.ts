@@ -1,12 +1,16 @@
-import { createTemplateAction } from '@backstage/plugin-scaffolder-backend';
+import {
+  createBackendModule,
+  coreServices,
+} from '@backstage/backend-plugin-api';
+import { scaffolderActionsExtensionPoint } from '@backstage/plugin-scaffolder-node/alpha';
+import { createTemplateAction } from '@backstage/plugin-scaffolder-node';
 
 interface EnvironmentAction {
   orgId: string
-  awsRegion: string
   cloudProvider: string
 }
 
-export function createGetEnvironmentAction({ orgId, awsRegion, cloudProvider }: EnvironmentAction) {
+export function createGetEnvironmentAction({ orgId, cloudProvider }: EnvironmentAction) {
   return createTemplateAction({
     id: 'backend:get-environment',
     schema: {
@@ -14,9 +18,6 @@ export function createGetEnvironmentAction({ orgId, awsRegion, cloudProvider }: 
         required: [],
         properties: {
           orgId: {
-            type: 'string'
-          },
-          awsRegion: {
             type: 'string'
           },
           cloudProvider: {
@@ -30,7 +31,6 @@ export function createGetEnvironmentAction({ orgId, awsRegion, cloudProvider }: 
     },
     handler: async (ctx) => {
       ctx.output('orgId', orgId);
-      ctx.output('awsRegion', awsRegion);
       ctx.output('cloudProvider', cloudProvider);
 
       let githubOIDCCustomization
@@ -44,3 +44,25 @@ export function createGetEnvironmentAction({ orgId, awsRegion, cloudProvider }: 
     },
   });
 }
+
+
+export default createBackendModule({
+  moduleId: 'get-environment-scaffolder-module',
+  pluginId: 'scaffolder',
+  register({ registerInit }) {
+    registerInit({
+      deps: {
+        scaffolderActions: scaffolderActionsExtensionPoint,
+        config: coreServices.rootConfig,
+      },
+      async init({ scaffolderActions, config }) {
+        scaffolderActions.addActions(
+          createGetEnvironmentAction({
+            orgId: config.getString('humanitec.orgId'),
+            cloudProvider: config.getString('cloudProvider'),
+          }),
+        );
+      },
+    });
+  },
+});
