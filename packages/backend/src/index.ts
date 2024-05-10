@@ -12,7 +12,6 @@ const backend = createBackend();
 
 backend.add(import('@backstage/plugin-app-backend/alpha'));
 backend.add(import('@backstage/plugin-proxy-backend/alpha'));
-backend.add(import('@backstage/plugin-scaffolder-backend/alpha'));
 backend.add(import('@backstage/plugin-techdocs-backend/alpha'));
 
 // auth plugin
@@ -38,8 +37,15 @@ backend.add(import('@backstage/plugin-search-backend/alpha'));
 backend.add(import('@backstage/plugin-search-backend-module-catalog/alpha'));
 backend.add(import('@backstage/plugin-search-backend-module-techdocs/alpha'));
 
+// scaffolder plugin
+backend.add(import('@backstage/plugin-scaffolder-backend/alpha'));
+backend.add(import('@backstage/plugin-scaffolder-backend-module-github'));
+// backend:get-environment used in humanitec templates
+backend.add(import('./actions/get-environment'));
+
 // humanitec
 backend.add(import('@humanitec/backstage-plugin-backend'));
 backend.add(import('@humanitec/backstage-plugin-scaffolder-backend-module'));
+
 
 backend.start();
