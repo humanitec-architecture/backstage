@@ -11,7 +11,7 @@ import {
   catalogImportPlugin,
 } from '@backstage/plugin-catalog-import';
 import { ScaffolderPage, scaffolderPlugin } from '@backstage/plugin-scaffolder';
-import { ValidateHumanitecAppIDFieldExtension } from './scaffolder/ValidateHumanitecAppID';
+import { ValidateHumanitecAppIDFieldExtension } from '@humanitec/backstage-plugin';
 import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
 import { orgPlugin } from '@backstage/plugin-org';
 import { SearchPage } from '@backstage/plugin-search';

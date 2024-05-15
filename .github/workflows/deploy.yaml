@@ -42,9 +42,6 @@ jobs:
 
       - name: Configure correct org after copying from template
         run: |
-          # Ensure correct github org
-          find ./templates -type f -name "*.yaml" -exec sed -i 's/humanitec-architecture/${{ github.repository_owner }}/g' {} +
-
           # Ensure correct humanitec org
           sed -i 's/humanitec-architecture/${{ vars.HUMANITEC_ORG_ID }}/g' catalog-info.yaml
 

@@ -28,7 +28,7 @@ spec:
   steps:
     - name: Read Environment
       id: environment
-      action: backend:get-environment
+      action: humanitec:get-environment
 
     - id: fetch-base
       name: Fetch Base
@@ -48,7 +48,7 @@ spec:
         allowedHosts: ['github.com']
         defaultBranch: main
         description: This is ${{ parameters.componentName }}
-        repoUrl: github.com?owner=humanitec-architecture&repo=${{ parameters.componentName }}
+        repoUrl: github.com?owner=${{ steps.environment.output.githubOrgId }}&repo=${{ parameters.componentName }}
         repoVisibility: public
         protectDefaultBranch: false
         oidcCustomization: ${{ steps.environment.output.githubOIDCCustomization }}
