@@ -62,5 +62,5 @@ catalog:
 humanitec:
   orgId: ${HUMANITEC_ORG_ID}
   token: ${HUMANITEC_TOKEN}
-
-cloudProvider: ${CLOUD_PROVIDER}
+  cloudProvider: ${CLOUD_PROVIDER}
+  githubOrgId: ${GITHUB_ORG_ID}

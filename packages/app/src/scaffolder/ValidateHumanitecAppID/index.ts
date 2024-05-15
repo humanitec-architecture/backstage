@@ -1,1 +1,0 @@
-export { ValidateHumanitecAppIDFieldExtension } from './extensions';
