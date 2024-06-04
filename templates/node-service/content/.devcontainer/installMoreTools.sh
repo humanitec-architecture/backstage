@@ -9,6 +9,12 @@ tar -xvf score-compose_${SCORE_COMPOSE_VERSION}_linux_amd64.tar.gz
 chmod +x score-compose
 sudo mv score-compose /usr/local/bin
 
+SCORE_K8S_VERSION=$(curl -sL https://api.github.com/repos/score-spec/score-k8s/releases/latest | jq -r .tag_name)
+wget https://github.com/score-spec/score-k8s/releases/download/${SCORE_K8S_VERSION}/score-k8s_${SCORE_K8S_VERSION}_linux_amd64.tar.gz
+tar -xvf score-k8s_${SCORE_K8S_VERSION}_linux_amd64.tar.gz
+chmod +x score-k8s
+sudo mv score-k8s /usr/local/bin
+
 HUMCTL_VERSION=$(curl -sL https://api.github.com/repos/humanitec/cli/releases/latest | jq -r .tag_name)
 curl -fLO https://github.com/humanitec/cli/releases/download/${HUMCTL_VERSION}/cli_${HUMCTL_VERSION:1}_linux_amd64.tar.gz
 tar -xvf cli_${HUMCTL_VERSION:1}_linux_amd64.tar.gz

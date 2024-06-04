@@ -32,7 +32,7 @@ env:
 {% endif %}
   BASE_ENVIRONMENT: 'development'
   ENVIRONMENT_TYPE: 'development'
-  HUMCTL_VERSION: '0.23.1'
+  HUMCTL_VERSION: '0.25.0'
   ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
   ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
 
@@ -252,8 +252,9 @@ jobs:
           cat pr_message.txt
       - name: Comment PR
         if: ${{ always() }}
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          filePath: pr_message.txt
+        run: |
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file pr_message.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 {% endraw %}

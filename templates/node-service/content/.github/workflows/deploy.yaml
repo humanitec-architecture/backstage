@@ -32,7 +32,7 @@ env:
 {%- else -%}
 # Unknown cloud provider: ${{ values.cloudProvider }}
 {% endif %}
-  HUMCTL_VERSION: '0.23.1'
+  HUMCTL_VERSION: '0.25.0'
   APP_NAME: ${{ values.name }}
 
 {% raw %}
