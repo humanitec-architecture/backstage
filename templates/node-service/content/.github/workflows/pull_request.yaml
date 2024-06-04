@@ -252,8 +252,9 @@ jobs:
           cat pr_message.txt
       - name: Comment PR
         if: ${{ always() }}
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          filePath: pr_message.txt
+        run: |
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file pr_message.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 {% endraw %}
