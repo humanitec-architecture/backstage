@@ -29,34 +29,35 @@ containers:
         memory: 64Mi
     variables:
       APP_CONFIG_app_baseUrl: https://${resources.dns.host}
-      APP_CONFIG_backend_auth_keys: ${values.APP_CONFIG_backend_auth_keys}
       APP_CONFIG_backend_baseUrl: https://${resources.dns.host}
       APP_CONFIG_backend_cors_origin: https://${resources.dns.host}
-      GITHUB_ORG_ID: ${values.GITHUB_ORG_ID}
-      GITHUB_APP_CLIENT_ID: ${values.GITHUB_APP_CLIENT_ID}
-      GITHUB_APP_CLIENT_SECRET: ${values.GITHUB_APP_CLIENT_SECRET}
-      HUMANITEC_ORG_ID: ${values.HUMANITEC_ORG_ID}
-      HUMANITEC_TOKEN: ${values.HUMANITEC_TOKEN}
+      GITHUB_ORG_ID: ${resources.env.GITHUB_ORG_ID}
+      GITHUB_APP_CLIENT_ID: ${resources.env.GITHUB_APP_CLIENT_ID}
+      GITHUB_APP_CLIENT_SECRET: ${resources.env.GITHUB_APP_CLIENT_SECRET}
+      HUMANITEC_ORG_ID: ${resources.env.HUMANITEC_ORG_ID}
+      HUMANITEC_TOKEN: ${resources.env.HUMANITEC_TOKEN}
       POSTGRES_HOST: ${resources.db.host}
       POSTGRES_PASSWORD: ${resources.db.password}
       POSTGRES_PORT: ${resources.db.port}
       POSTGRES_USER: ${resources.db.username}
-      CLOUD_PROVIDER: ${values.CLOUD_PROVIDER}
+      CLOUD_PROVIDER: ${resources.env.CLOUD_PROVIDER}
 
     files:
       - target: /app/credentials/github-app-backstage-humanitec-credentials.yaml
         mode: "0644"
         content: |
           # Name: Backstage-Humanitec
-          appId: ${values.GITHUB_APP_ID}
+          appId: ${resources.env.GITHUB_APP_ID}
           webhookUrl: https://${externals.dns.host}
-          clientId: ${values.GITHUB_APP_CLIENT_ID}
-          clientSecret: ${values.GITHUB_APP_CLIENT_SECRET}
-          webhookSecret: ${values.GITHUB_APP_WEBHOOK_SECRET}
+          clientId: ${resources.env.GITHUB_APP_CLIENT_ID}
+          clientSecret: ${resources.env.GITHUB_APP_CLIENT_SECRET}
+          webhookSecret: ${resources.env.GITHUB_APP_WEBHOOK_SECRET}
           privateKey: |
-            ${values.GITHUB_APP_PRIVATE_KEY}
+            ${resources.env.GITHUB_APP_PRIVATE_KEY}
 
 resources:
+  env:
+    type: environment
   dns:
     type: dns
   route:
