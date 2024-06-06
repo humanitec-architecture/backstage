@@ -15,9 +15,11 @@ WORKLOAD_NAME = podinfo-workload
 CONTAINER_NAME = podinfo
 CONTAINER_IMAGE = ${CONTAINER_NAME}:test
 
-compose.yaml: score.yaml
+.score-compose/state.yaml:
 	score-compose init \
 		--no-sample
+
+compose.yaml: score.yaml .score-compose/state.yaml Makefile
 	score-compose generate score.yaml \
 		--build '${CONTAINER_NAME}={"context":".","tags":["${CONTAINER_IMAGE}"]}'
 
@@ -25,11 +27,11 @@ compose.yaml: score.yaml
 .PHONY: compose-up
 compose-up: compose.yaml
 	docker compose up --build -d --remove-orphans
+	sleep 5
 
 ## Generate a compose.yaml file from the score spec, launch it and test (curl) the exposed container.
 .PHONY: compose-test
 compose-test: compose-up
-	sleep 5
 	curl $$(score-compose resources get-outputs dns.default#${WORKLOAD_NAME}.dns --format '{{ .host }}:8080')
 
 ## Delete the containers running via compose down.
