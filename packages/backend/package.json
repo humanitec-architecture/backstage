@@ -32,7 +32,7 @@
     "@backstage/plugin-permission-common": "^0.7.13",
     "@backstage/plugin-permission-node": "^0.7.29",
     "@backstage/plugin-proxy-backend": "^0.4.16",
-    "@backstage/plugin-scaffolder-backend": "^1.22.7",
+    "@backstage/plugin-scaffolder-backend": "^1.22.8",
     "@backstage/plugin-scaffolder-backend-module-github": "^0.2.8",
     "@backstage/plugin-search-backend": "^1.5.9",
     "@backstage/plugin-search-backend-module-catalog": "^0.1.24",
