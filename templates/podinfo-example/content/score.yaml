@@ -1,7 +1,7 @@
 apiVersion: score.dev/v1b1
 
 metadata:
-  name: podinfo-workload
+  name: ${{ values.name | dump }}
 
 service:
   ports:

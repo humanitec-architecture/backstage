@@ -1,7 +1,7 @@
 apiVersion: score.dev/v1b1
 
 metadata:
-  name: node-workload
+  name: ${{ values.name | dump }}
 
 # Define the ports that this service exposes
 service:
