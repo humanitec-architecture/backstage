@@ -85,3 +85,10 @@ k8s-down:
 	kubectl delete \
 		-f manifests.yaml \
 		-n ${NAMESPACE}
+
+## Deploy the workload to Humanitec.
+.PHONY: htc-up
+htc-up:
+	humctl score deploy \
+		-f score.yaml \
+		--wait
