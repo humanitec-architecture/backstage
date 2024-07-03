@@ -24,7 +24,7 @@ jobs:
   validate-score:
     runs-on: ubuntu-latest
     env:
-      HUMCTL_VERSION: '0.25.0'
+      HUMCTL_VERSION: '*'
     steps:
       - name: checkout code
         uses: actions/checkout@v4
