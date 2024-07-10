@@ -104,6 +104,11 @@ jobs:
           gcloud auth configure-docker ${{ env.GCP_GAR_HOST }} --quiet
           echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"
 
+      - if: ${{ vars.CLOUD_PROVIDER == '5min' }}
+        name: define registry
+        run: |
+          echo "CONTAINER_REGISTRY=localhost:5001" >> "$GITHUB_ENV"
+
       - name: Set Tag with SHA
         run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
 
