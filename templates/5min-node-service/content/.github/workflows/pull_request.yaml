@@ -1,0 +1,260 @@
+name: Pull Request
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+permissions:
+  contents: read
+  pull-requests: write
+env:
+  APP_NAME: ${{ values.name }}
+  IMAGE: ${{ values.image }}
+{%- if values.cloudProvider === "aws" -%}
+{% raw %}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+{% endraw %}
+{%- elif values.cloudProvider === "azure" -%}
+{% raw %}
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+{% endraw %}
+{%- elif values.cloudProvider === "gcp" -%}
+{% raw %}
+  GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+  GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+  GCP_GAR_HOST: ${{ vars.GCP_GAR_HOST }}
+  GCP_GAR_NAME: ${{ vars.GCP_GAR_NAME }}
+{% endraw %}
+{%- else -%}
+# Unknown cloud provider: ${{ values.cloudProvider }}
+{% endif %}
+  BASE_ENVIRONMENT: 'development'
+  ENVIRONMENT_TYPE: 'development'
+  HUMCTL_VERSION: '*'
+  ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
+  ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
+
+{% raw %}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: humanitec/setup-cli-action@v1
+        with:
+          version: ${{ env.HUMCTL_VERSION }}
+      - name: Create Humanitec Env
+        run: |
+          humctl create environment ${{ env.ENVIRONMENT_ID }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --name ${{ env.ENVIRONMENT_NAME }} \
+              -t ${{ env.ENVIRONMENT_TYPE }} \
+              --from ${{ env.BASE_ENVIRONMENT }} \
+              || true
+      - name: Set Tag with SHA
+        run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
+{% endraw %}
+{%- if values.cloudProvider === "aws" -%}
+{% raw %}
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: login to aws ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: create repo if not existing
+        id: create-repo
+        uses: int128/create-ecr-repository-action@v1
+        with:
+          repository: ${{ env.IMAGE }}
+
+      - name: "set CONTAINER_REGISTRY env var"
+        run: |
+          echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+{% endraw %}
+{%- elif values.cloudProvider === "azure" -%}
+{% raw %}
+      - name: configure azure credentials
+        uses: azure/login@v1
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: login to azure acr
+        run: |
+          az acr login -n ${{ env.AZURE_ACR_NAME }}
+          echo "CONTAINER_REGISTRY=${{ env.AZURE_ACR_NAME }}.azurecr.io" >> "$GITHUB_ENV"
+{% endraw %}
+{%- elif values.cloudProvider === "gcp" -%}
+{% raw %}
+      - name: configure gcp credentials
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: login to gcp gar
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_GAR_HOST }} --quiet
+          echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"
+{% endraw %}
+{% endif %}
+{% raw %}
+      - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
+      - run: docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
+
+      - name: Inform Humanitec
+        run: |-
+          humctl create artefact-version \
+            --token ${{ secrets.HUMANITEC_TOKEN }} \
+            --org ${{ vars.HUMANITEC_ORG_ID }} \
+            -t container \
+            -n $CONTAINER_REGISTRY/$IMAGE \
+            --version $TAG \
+            --ref $GITHUB_REF \
+            --commit $GITHUB_SHA
+
+      - name: Run Score
+        run: |
+          humctl score deploy \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} \
+              -f score.yaml \
+              --extensions humanitec.score.yaml \
+              --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
+              --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
+              --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)" \
+              --wait
+      - name: Build Comment Message
+        if: ${{ always() }}
+        run: |
+          DEPLOYMENT_ID=$(humctl get deployment . -o json \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID}} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} \
+              | jq -r .metadata.id)
+          ENV_URL="https://app.humanitec.io/orgs/"${{ vars.HUMANITEC_ORG_ID }}"/apps/"${{ env.APP_NAME }}"/envs/"${{ env.ENVIRONMENT_ID }}"/deploys/"${DEPLOYMENT_ID}
+          DOMAINS=$(humctl get active-resources \
+                      --token ${{ secrets.HUMANITEC_TOKEN }} \
+                      --org ${{ vars.HUMANITEC_ORG_ID }} \
+                      --app ${{ env.APP_NAME }} \
+                      --env ${{ env.ENVIRONMENT_ID }} -o json \
+                      | jq -r '. | map(. | select(.metadata.type == "dns")) | map((.metadata.res_id | split(".") | .[1]) + ": [" + .status.resource.host + "](https://" + .status.resource.host + ")") | join("\n")')
+
+          DEPLOYMENT_ERRORS=$(humctl get deployment-error \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} -o json)
+          if [ "$DEPLOYMENT_ERRORS" = "[]" ]; then
+            echo "## Deployment successfully completed for ${{ env.ENVIRONMENT_NAME }}! :tada:" >> pr_message.txt
+            echo "" >> pr_message.txt
+          else
+            echo "## Deployment failed for ${{ env.ENVIRONMENT_NAME }}! :x:" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Errors:" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```json' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "$DEPLOYMENT_ERRORS" | jq .[0].status.message -r >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "<details><summary>Errors details</summary>" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Errors details:" >> pr_message.txt
+            echo '```json' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "$DEPLOYMENT_ERRORS" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "</details>" >> pr_message.txt
+            echo "" >> pr_message.txt
+          fi
+
+          echo "### [View in Humanitec]($ENV_URL)" >> pr_message.txt
+          echo "Deployment ID: $DEPLOYMENT_ID" >> pr_message.txt
+
+          echo "" >> pr_message.txt
+          echo "### Domains:" >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "$DOMAINS" >> pr_message.txt
+          echo "" >> pr_message.txt
+
+          echo "<details><summary>Deployment diff</summary>" >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "### Deployment diff:" >> pr_message.txt
+          echo '```json' >> pr_message.txt
+          echo "" >> pr_message.txt
+          humctl diff sets env/${{ env.ENVIRONMENT_ID }} env/${{ env.BASE_ENVIRONMENT }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} -o json >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo '```' >> pr_message.txt
+          echo "" >> pr_message.txt
+          echo "</details>" >> pr_message.txt
+
+          if [ "$DEPLOYMENT_ERRORS" = "[]" ]; then
+            echo "<details><summary>Active Resources Usage</summary>" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Active Resources Usage:" >> pr_message.txt
+            echo '```none' >> pr_message.txt
+            echo "" >> pr_message.txt
+            humctl resources active-resource-usage \
+                --env ${{ env.ENVIRONMENT_ID }} \
+                --token ${{ secrets.HUMANITEC_TOKEN }} \
+                --org ${{ vars.HUMANITEC_ORG_ID }} \
+                --app ${{ env.APP_NAME }} >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "</details>" >> pr_message.txt
+          fi
+          if [ "$DEPLOYMENT_ERRORS" = "[]" ]; then
+            echo "<details><summary>Resources Graph</summary>" >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "### Resources Graph:" >> pr_message.txt
+            echo '```none' >> pr_message.txt
+            echo "" >> pr_message.txt
+            humctl resources graph \
+                --env ${{ env.ENVIRONMENT_ID }} \
+                --token ${{ secrets.HUMANITEC_TOKEN }} \
+                --org ${{ vars.HUMANITEC_ORG_ID }} \
+                --app ${{ env.APP_NAME }} >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo '```' >> pr_message.txt
+            echo "" >> pr_message.txt
+            echo "</details>" >> pr_message.txt
+          fi
+
+          cat pr_message.txt
+      - name: Comment PR
+        if: ${{ always() }}
+        run: |
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file pr_message.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+{% endraw %}

@@ -1,0 +1,29 @@
+{
+	"name": "Score & Humanitec Dev Container",
+	"image": "mcr.microsoft.com/devcontainers/base:jammy",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+			"version": "latest",
+			"helm": "latest",
+			"minikube": "latest"
+		}
+	},
+	"postCreateCommand": "bash .devcontainer/installMoreTools.sh",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"redhat.vscode-yaml",
+				"humanitec.humanitec"
+			],
+			"settings": {
+				"yaml.schemas": {
+					"https://raw.githubusercontent.com/score-spec/schema/main/score-v1b1.json": "score.yaml"
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,62 @@
+app:
+  baseUrl: http://localhost:7007
+
+backend:
+  baseUrl: http://localhost:7007
+  listen: ":7007"
+  csp:
+    connect-src: ["'self'", "http:", "https:"]
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+
+proxy:
+
+auth:
+  providers:
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
+
+integrations:
+  gitea:
+    - host: 5min-idp-control-plane:30443
+      username: "5minadmin"
+      password: "5minadmin"
+
+techdocs:
+  builder: "local"
+  generator:
+    runIn: "local"
+  publisher:
+    type: "local"
+
+organization:
+  name: Humanitec
+
+scaffolder:
+
+catalog:
+  orphanStrategy: delete
+  rules:
+    - allow: [Component, System, API, Resource, Location, Template]
+  locations:
+    - type: file
+      target: catalog-info.yaml
+    - type: file
+      target: templates/node-service/template.yaml
+    - type: file
+      target: templates/5min-podinfo/template.yaml
+    - type: file
+      target: examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+humanitec:
+  orgId: ${HUMANITEC_ORG_ID}
+  token: ${HUMANITEC_TOKEN}
+  cloudProvider: ${CLOUD_PROVIDER}
+  githubOrgId: ${GITHUB_ORG_ID}

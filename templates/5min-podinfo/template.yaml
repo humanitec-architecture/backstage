@@ -1,0 +1,75 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: 5min-podinfo-service-template
+  title: 5min Podinfo Service Template
+  description: An example template that creates a simple Podinfo service
+  tags:
+    - score
+    - humanitec
+spec:
+  owner: user:guest
+  type: service
+
+  parameters:
+    - title: New Podinfo Service
+      required:
+        - componentName
+      properties:
+        componentName:
+          title: Component Name
+          type: string
+          description: Unique name of the project
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+          ui:field: ValidateHumanitecAppID
+
+  steps:
+    - name: Read Environment
+      id: environment
+      action: humanitec:get-environment
+
+    - id: fetch-base
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          name: ${{ parameters.componentName }}
+          image: ${{ parameters.componentName }}
+          orgId: ${{ steps.environment.output.orgId }}
+          cloudProvider: ${{ steps.environment.output.cloudProvider }}
+
+    - id: publish
+      name: Publishing to Gitea
+      action: publish:gitea
+      input:
+        description: This is your new git repo for ${{ parameters.componentName }}
+        repoVisibility: public
+        repoUrl: 5min-idp-control-plane:30443/5minorg?owner=5minorg&repo=${{ parameters.componentName }}
+        defaultBranch: main
+        organization: 5minorg
+        owner: 5minorg
+        repo: ${{ parameters.componentName }}
+
+    - id: humanitec-create-app
+      name: Create Humanitec App
+      action: humanitec:create-app
+      input:
+        appId: ${{ parameters.componentName }}
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/main/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}

@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.name | dump }}
+  annotations:
+    "humanitec.com/orgId": ${{ values.orgId | dump }}
+    "humanitec.com/appId": ${{ values.name | dump }}
+spec:
+  type: service
+  owner: user:guest
+  lifecycle: experimental

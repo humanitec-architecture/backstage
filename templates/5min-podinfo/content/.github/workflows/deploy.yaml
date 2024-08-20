@@ -30,7 +30,11 @@ env:
   GCP_GAR_NAME: ${{ vars.GCP_GAR_NAME }}
 {% endraw %}
 {%- else -%}
-# Unknown cloud provider: ${{ values.cloudProvider }}
+{% raw %}
+
+  # Unknown cloud provider: ${{ values.cloudProvider }}
+  # Nothing to do here
+{% endraw %}
 {% endif %}
   HUMCTL_VERSION: '*'
   APP_NAME: ${{ values.name }}
@@ -109,7 +113,7 @@ jobs:
 {% endraw %}
 {% endif %}
 {% raw %}
-      - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
+      - run: docker build . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
       - run: docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
 
       - uses: humanitec/setup-cli-action@v1
@@ -129,11 +133,14 @@ jobs:
 
       - name: Deploy using Score
         run: |
+          humctl api POST /orgs/${{ vars.HUMANITEC_ORG_ID }}/apps/${{ env.APP_NAME }}/envs \
+            -d '{ "id": "5min-local", "name": "5min-local", "type": "5min-local" }' \
+            --token ${{ secrets.HUMANITEC_TOKEN }}
           humctl score deploy \
             --token ${{ secrets.HUMANITEC_TOKEN }} \
             --org ${{ vars.HUMANITEC_ORG_ID }} \
             --app ${{ env.APP_NAME }} \
-            --env development \
+            --env 5min-local \
             -f score.yaml \
             --extensions humanitec.score.yaml \
             --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \

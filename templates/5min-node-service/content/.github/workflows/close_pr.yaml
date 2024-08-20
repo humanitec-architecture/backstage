@@ -1,0 +1,27 @@
+name: Delete PR Env
+on:
+  pull_request:
+    types:
+      - closed
+
+env:
+  APP_NAME: ${{ values.name }}
+  ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
+  HUMCTL_VERSION: '*'
+
+{% raw %}
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: humanitec/setup-cli-action@v1
+        with:
+          version: ${{ env.HUMCTL_VERSION }}
+      - name: Delete Humanitec Env
+        run: |
+          humctl delete env ${{ env.ENVIRONMENT_ID }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }}
+
+{% endraw %}

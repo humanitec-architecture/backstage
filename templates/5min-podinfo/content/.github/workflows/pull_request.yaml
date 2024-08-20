@@ -1,14 +1,12 @@
-name: Deploy ${{ values.name | capitalize }}
-
+name: Pull Request
 on:
-  push:
-    branches: main
-{% raw %}
-concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
+  pull_request:
+    types: [opened, reopened, synchronize]
+permissions:
+  contents: read
+  pull-requests: write
 env:
-{% endraw %}
+  APP_NAME: ${{ values.name }}
   IMAGE: ${{ values.image }}
 {%- if values.cloudProvider === "aws" -%}
 {% raw %}
@@ -30,21 +28,41 @@ env:
   GCP_GAR_NAME: ${{ vars.GCP_GAR_NAME }}
 {% endraw %}
 {%- else -%}
-# Unknown cloud provider: ${{ values.cloudProvider }}
+{% raw %}
+
+  # Unknown cloud provider: ${{ values.cloudProvider }}
+  # Nothing to do here
+{% endraw %}
 {% endif %}
+  BASE_ENVIRONMENT: '5min-local'
+  ENVIRONMENT_TYPE: '5min-local'
   HUMCTL_VERSION: '*'
-  APP_NAME: ${{ values.name }}
+  ENVIRONMENT_ID: {% raw %}pr-${{ github.event.number }}{% endraw %}
+  ENVIRONMENT_NAME: {% raw %}PR-${{ github.event.number }}{% endraw %}
 
 {% raw %}
 jobs:
-  deploy:
-    name: Build & Notify Humanitec
+  build:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
+      - uses: humanitec/setup-cli-action@v1
+        with:
+          version: ${{ env.HUMCTL_VERSION }}
+      - name: Create Humanitec Env
+        run: |
+          humctl create environment ${{ env.ENVIRONMENT_ID }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --name ${{ env.ENVIRONMENT_NAME }} \
+              -t ${{ env.ENVIRONMENT_TYPE }} \
+              --from ${{ env.BASE_ENVIRONMENT }} \
+              || true
       - name: Set Tag with SHA
         run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
 {% endraw %}
@@ -109,12 +127,8 @@ jobs:
 {% endraw %}
 {% endif %}
 {% raw %}
-      - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
+      - run: docker build . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
       - run: docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
-
-      - uses: humanitec/setup-cli-action@v1
-        with:
-          version: ${{ env.HUMCTL_VERSION }}
 
       - name: Inform Humanitec
         run: |-
@@ -127,16 +141,16 @@ jobs:
             --ref $GITHUB_REF \
             --commit $GITHUB_SHA
 
-      - name: Deploy using Score
+      - name: Run Score
         run: |
           humctl score deploy \
-            --token ${{ secrets.HUMANITEC_TOKEN }} \
-            --org ${{ vars.HUMANITEC_ORG_ID }} \
-            --app ${{ env.APP_NAME }} \
-            --env development \
-            -f score.yaml \
-            --extensions humanitec.score.yaml \
-            --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
-            --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
-            --message "${{ github.event.head_commit.message }}"
-{% endraw %}
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }} \
+              --app ${{ env.APP_NAME }} \
+              --env ${{ env.ENVIRONMENT_ID }} \
+              -f score.yaml \
+              --extensions humanitec.score.yaml \
+              --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
+              --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
+              --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)" \
+              --wait

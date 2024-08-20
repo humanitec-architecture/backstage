@@ -101,12 +101,6 @@ jobs:
           gcloud auth configure-docker ${{ env.GCP_GAR_HOST }} --quiet
           echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"
 {% endraw %}
-{%- elif values.cloudProvider === "5min" -%}
-{% raw %}
-      - name: Define 5min registry
-        run: |
-          echo "CONTAINER_REGISTRY=localhost:5001" >> "$GITHUB_ENV"
-{% endraw %}
 {% endif %}
 {% raw %}
       - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
