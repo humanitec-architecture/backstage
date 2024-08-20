@@ -1,0 +1,53 @@
+apiVersion: score.dev/v1b1
+
+metadata:
+  name: backstage
+
+service:
+  ports:
+    backstage:
+      port: 7007
+      targetPort: 7007
+
+containers:
+  backstage:
+    command:
+      - "node"
+    args:
+      - packages/backend
+      - "--config"
+      - app-config.5min.yaml
+    image: .
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1024Mi
+      requests:
+        cpu: "0.025"
+        memory: 64Mi
+    variables:
+      APP_CONFIG_app_baseUrl: https://${resources.dns.host}
+      APP_CONFIG_backend_baseUrl: https://${resources.dns.host}
+      APP_CONFIG_backend_cors_origin: https://${resources.dns.host}
+      HUMANITEC_ORG_ID: ${resources.env.HUMANITEC_ORG_ID}
+      HUMANITEC_TOKEN: ${resources.env.HUMANITEC_TOKEN}
+      POSTGRES_HOST: ${resources.db.host}
+      POSTGRES_PASSWORD: ${resources.db.password}
+      POSTGRES_PORT: ${resources.db.port}
+      POSTGRES_USER: ${resources.db.username}
+      CLOUD_PROVIDER: ${resources.env.CLOUD_PROVIDER}
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+
+resources:
+  env:
+    type: environment
+  dns:
+    type: dns
+  route:
+    type: route
+    params:
+      host: ${resources.dns.host}
+      path: /
+      port: 7007
+  db:
+    type: postgres

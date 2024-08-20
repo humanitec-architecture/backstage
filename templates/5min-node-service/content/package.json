@@ -1,0 +1,11 @@
+{
+  "name": "${{ values.name }}",
+  "version": "1.0.0",
+  "description": "A hello world app",
+  "main": "index.js",
+  "license": "PRIVATE",
+  "private": true,
+  "dependencies": {
+    "mysql2": "^3.9.7"
+  }
+}

@@ -83,15 +83,18 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app/yarn.lock /app/package.json /app/packages/backend/dist/skeleton/ ./
 
 RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid=1000 \
-    yarn install --frozen-lockfile --production --network-timeout 600000
+yarn install --frozen-lockfile --production --network-timeout 600000
 
 # Copy the built packages from the build stage
 COPY --from=build --chown=node:node /app/packages/backend/dist/bundle/ ./
 
 # Copy any other files that we need at runtime
-COPY --chown=node:node app-config.yaml app-config.production.yaml ./
+COPY --chown=node:node app-config.yaml app-config.production.yaml app-config.5min.yaml ./
+COPY --chown=node:node catalog-info.yaml ./
+COPY --chown=node:node templates templates
+COPY --chown=node:node examples examples
 
 # This switches many Node.js dependencies to production mode.
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 CMD ["node", "packages/backend", "--config", "app-config.yaml"]
