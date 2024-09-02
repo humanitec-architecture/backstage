@@ -62,7 +62,7 @@ jobs:
               --name ${{ env.ENVIRONMENT_NAME }} \
               -t ${{ env.ENVIRONMENT_TYPE }} \
               --from ${{ env.BASE_ENVIRONMENT }} \
-              || true
+              || true          
       - name: Set Tag with SHA
         run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
 {% endraw %}
@@ -88,7 +88,7 @@ jobs:
 
       - name: "set CONTAINER_REGISTRY env var"
         run: |
-          echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"
+          echo "CONTAINER_REGISTRY=$REGISTRY" >> "$GITHUB_ENV"          
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
 {% endraw %}
@@ -104,7 +104,7 @@ jobs:
       - name: login to azure acr
         run: |
           az acr login -n ${{ env.AZURE_ACR_NAME }}
-          echo "CONTAINER_REGISTRY=${{ env.AZURE_ACR_NAME }}.azurecr.io" >> "$GITHUB_ENV"
+          echo "CONTAINER_REGISTRY=${{ env.AZURE_ACR_NAME }}.azurecr.io" >> "$GITHUB_ENV"          
 {% endraw %}
 {%- elif values.cloudProvider === "gcp" -%}
 {% raw %}
@@ -117,7 +117,7 @@ jobs:
       - name: login to gcp gar
         run: |
           gcloud auth configure-docker ${{ env.GCP_GAR_HOST }} --quiet
-          echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"
+          echo "CONTAINER_REGISTRY=${{ env.GCP_GAR_NAME }}" >> "$GITHUB_ENV"          
 {% endraw %}
 {%- elif values.cloudProvider === "5min" -%}
 {% raw %}
@@ -139,7 +139,7 @@ jobs:
             -n $CONTAINER_REGISTRY/$IMAGE \
             --version $TAG \
             --ref $GITHUB_REF \
-            --commit $GITHUB_SHA
+            --commit $GITHUB_SHA          
 
       - name: Run Score
         run: |
@@ -153,4 +153,5 @@ jobs:
               --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
               --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
               --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)" \
-              --wait
+              --wait          
+{% endraw %}
