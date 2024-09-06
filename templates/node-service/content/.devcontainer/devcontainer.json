@@ -4,7 +4,8 @@
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
 			"moby": true,
-			"version": "latest"
+			"_comment": "cannot use latest for now because of this current issue: https://github.com/kubernetes-sigs/kind/issues/3696",
+			"version": "26.1.4"
 		},
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
 			"version": "latest",
