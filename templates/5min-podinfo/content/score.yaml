@@ -13,7 +13,8 @@ containers:
   podinfo:
     image: . # Set by pipeline
     variables:
-      Hello: World
+      PODINFO_UI_COLOR: "#34577c"
+      PODINFO_UI_MESSAGE: ""
 
 resources:
   dns: # We need a DNS record to point to the service 
