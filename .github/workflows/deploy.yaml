@@ -54,7 +54,7 @@ jobs:
 
       - if: ${{ vars.CLOUD_PROVIDER == 'aws' }}
         name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
@@ -62,7 +62,7 @@ jobs:
       - if: ${{ vars.CLOUD_PROVIDER == 'aws' }}
         name: login to aws ecr
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         with:
           mask-password: 'true'
 
@@ -96,7 +96,7 @@ jobs:
 
       - if: ${{ vars.CLOUD_PROVIDER == 'gcp' }}
         name: configure gcp credentials
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
