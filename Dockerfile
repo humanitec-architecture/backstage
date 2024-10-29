@@ -1,6 +1,6 @@
 # https://backstage.io/docs/deployment/docker/#multi-stage-build
 # Stage 1 - Create yarn install skeleton layer
-FROM node:18-bookworm-slim AS packages
+FROM node:20-bookworm-slim AS packages
 
 WORKDIR /app
 COPY package.json yarn.lock ./
@@ -49,7 +49,7 @@ RUN mkdir packages/backend/dist/skeleton packages/backend/dist/bundle \
     && tar xzf packages/backend/dist/bundle.tar.gz -C packages/backend/dist/bundle
 
 # Stage 3 - Build the actual backend image and install production dependencies
-FROM node:18-bookworm-slim
+FROM node:20-bookworm-slim
 
 # Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
 # Additionally, we install dependencies for `techdocs.generator.runIn: local`.
@@ -96,5 +96,8 @@ COPY --chown=node:node examples examples
 
 # This switches many Node.js dependencies to production mode.
 ENV NODE_ENV=production
+
+# This disables node snapshot for Node 20 to work with the Scaffolder
+ENV NODE_OPTIONS="--no-node-snapshot"
 
 CMD ["node", "packages/backend", "--config", "app-config.yaml"]
