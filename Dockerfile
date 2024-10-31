@@ -13,21 +13,23 @@ COPY plugins plugins
 RUN find packages \! -name "package.json" -mindepth 2 -maxdepth 2 -exec rm -rf {} \+
 
 # Stage 2 - Install dependencies and build packages
-FROM node:18-bookworm-slim AS build
+FROM node:20-bookworm-slim AS build
 
 # Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends python3 g++ build-essential && \
-    yarn config set python /usr/bin/python3
+    yarn config set python /usr/bin/python3 && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
 # in which case you should also move better-sqlite3 to "devDependencies" in package.json.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev
+    apt-get install -y --no-install-recommends libsqlite3-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 USER node
 WORKDIR /app
@@ -62,14 +64,16 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get install -y --no-install-recommends python3 python3-pip python3-venv g++ build-essential && \
     yarn config set python /usr/bin/python3 && \
     python3 -m venv $VIRTUAL_ENV && \
-    pip3 install mkdocs-techdocs-core==1.2.3
+    pip3 install mkdocs-techdocs-core==1.4.2 && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
 # in which case you should also move better-sqlite3 to "devDependencies" in package.json.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev
+    apt-get install -y --no-install-recommends libsqlite3-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # From here on we use the least-privileged `node` user to run the backend.
 USER node
