@@ -43,7 +43,8 @@
   "resolutions": {
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "jsonpath-plus": "^10.0.0"
+    "jsonpath-plus": "^10.0.0",
+    "cookie": "^0.7.0"
   },
   "prettier": "@spotify/prettier-config",
   "lint-staged": {
