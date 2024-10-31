@@ -140,7 +140,7 @@ jobs:
               --env ${{ env.ENVIRONMENT_ID }} \
               -f score.yaml \
               --extensions humanitec.score.yaml \
-              --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/score.yaml" \
+              --workload-source-url "https://github.com/${{ github.repository }}/blob/${{ github.head_ref }}/score.yaml" \
               --image $CONTAINER_REGISTRY/$IMAGE:$TAG \
               --message "$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "${{ github.event.pull_request.commits_url }}?per_page=10" | jq -r .[-1].commit.message)" \
               --wait
