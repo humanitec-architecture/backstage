@@ -28,7 +28,7 @@ env:
 
 jobs:
   deploy:
-    name: Build & Notify Humanitec
+    name: Build & Deploy
     runs-on: ubuntu-latest
 
     permissions:
@@ -130,7 +130,7 @@ jobs:
         with:
           version: ${{ env.HUMCTL_VERSION }}
 
-      - name: Inform Humanitec
+      - name: Define container image metadata
         run: |-
           humctl create artefact-version \
             --token ${{ secrets.HUMANITEC_TOKEN }} \
@@ -141,7 +141,7 @@ jobs:
             --ref $GITHUB_REF \
             --commit $GITHUB_SHA
 
-      - name: Run Score
+      - name: Deploy Score
         run: |
           humctl score deploy \
             --token ${{ secrets.HUMANITEC_TOKEN }} \
