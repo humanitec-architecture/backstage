@@ -120,18 +120,7 @@ jobs:
       - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
       - run: docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
 
-      - name: Inform Humanitec
-        run: |-
-          humctl create artefact-version \
-            --token ${{ secrets.HUMANITEC_TOKEN }} \
-            --org ${{ vars.HUMANITEC_ORG_ID }} \
-            -t container \
-            -n $CONTAINER_REGISTRY/$IMAGE \
-            --version $TAG \
-            --ref $GITHUB_REF \
-            --commit $GITHUB_SHA
-
-      - name: Run Score
+      - name: Deploy Score
         run: |
           humctl score deploy \
               --token ${{ secrets.HUMANITEC_TOKEN }} \
