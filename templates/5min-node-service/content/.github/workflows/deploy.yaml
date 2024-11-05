@@ -38,7 +38,7 @@ env:
 {% raw %}
 jobs:
   deploy:
-    name: Build & Notify Humanitec
+    name: Build & Deploy
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -110,7 +110,7 @@ jobs:
         with:
           version: ${{ env.HUMCTL_VERSION }}
 
-      - name: Inform Humanitec
+      - name: Define container image metadata
         run: |-
           humctl create artefact-version \
             --token ${{ secrets.HUMANITEC_TOKEN }} \
