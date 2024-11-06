@@ -1,11 +1,11 @@
 {
   "name": "${{ values.name }}",
   "version": "1.0.0",
-  "description": "A hello world app",
+  "description": "An Hello World workload in NodeJS talking to a PostgreSQL database.",
   "main": "index.js",
   "license": "PRIVATE",
   "private": true,
   "dependencies": {
-    "mysql2": "^3.9.7"
+    "pg": "^8.13.1"
   }
 }

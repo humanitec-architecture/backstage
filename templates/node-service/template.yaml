@@ -3,10 +3,11 @@ kind: Template
 metadata:
   name: nodejs-service-template
   title: NodeJS Service Template
-  description: An example template that creates a simple Hello World service
+  description: An example template that creates a simple NodeJS service talking to a PostgreSQL database
   tags:
     - score
     - humanitec
+    - postgres
 spec:
   owner: user:guest
   type: service
