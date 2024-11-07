@@ -1,5 +1,7 @@
 # Score - ${{ values.name | capitalize }}
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/${{ values.githubOrgId }}/${{ values.name }})
+
 The workload is a simple containerized NodeJS app talking to a MySQL database.
 
 [Score](https://score.dev/) is used to deploy the workload locally with `score-compose` in Docker, with `score-k8s` in Kubernetes or with `humctl` in Humanitec. See [Makefile](Makefile) for more details.
