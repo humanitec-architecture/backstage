@@ -1,3 +1,0 @@
----
-id: ${{ values.name | lower | dump }}
-name: ${{ values.name | dump }}

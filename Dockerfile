@@ -91,7 +91,6 @@ COPY --from=build --chown=node:node /app/packages/backend/dist/bundle/ ./
 # Copy any other files that we need at runtime
 COPY --chown=node:node app-config.yaml app-config.production.yaml app-config.5min.yaml ./
 COPY --chown=node:node catalog-info.yaml ./
-COPY --chown=node:node templates templates
 COPY --chown=node:node examples examples
 
 # This switches many Node.js dependencies to production mode.
