@@ -38,6 +38,11 @@ containers:
       CLOUD_PROVIDER: ${resources.env.CLOUD_PROVIDER}
       NODE_TLS_REJECT_UNAUTHORIZED: "0"
 
+    volumes:
+    - source: volumes.tmp
+      target: /tmp
+      read_only: false
+
 resources:
   env:
     type: environment
