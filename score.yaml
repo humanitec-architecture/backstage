@@ -58,7 +58,7 @@ containers:
     volumes:
     - source: volumes.tmp
       target: /tmp
-      read_only: false
+      readOnly: false
 
 resources:
   env:
