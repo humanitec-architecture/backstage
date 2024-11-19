@@ -55,6 +55,11 @@ containers:
           privateKey: |
             ${resources.env.GITHUB_APP_PRIVATE_KEY}
 
+    volumes:
+    - source: volumes.tmp
+      target: /tmp
+      readOnly: false
+
 resources:
   env:
     type: environment
