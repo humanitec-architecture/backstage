@@ -25,11 +25,11 @@ catalog:
     - type: url
       target: https://github.com/${GITHUB_ORG_ID}/backstage/blob/main/catalog-info.yaml
     - type: url
-      target: https://github.com/${GITHUB_ORG_ID}/backstage/blob/main/templates/node-service/template.yaml
+      target: https://github.com/humanitec-architecture/backstage-catalog-templates/blob/main/node-service/template.yaml
       rules:
         - allow: [Template]
     - type: url
-      target: https://github.com/${GITHUB_ORG_ID}/backstage/blob/main/templates/podinfo-example/template.yaml
+      target: https://github.com/humanitec-architecture/backstage-catalog-templates/blob/main/podinfo/template.yaml
       rules:
         - allow: [Template]
     - type: url

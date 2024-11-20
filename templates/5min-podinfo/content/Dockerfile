@@ -1,1 +1,0 @@
-FROM stefanprodan/podinfo:latest
