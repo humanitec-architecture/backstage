@@ -30,7 +30,7 @@
     ]
   },
   "devDependencies": {
-    "@backstage/cli": "^0.29.1",
+    "@backstage/cli": "^0.29.2",
     "@backstage/e2e-test-utils": "^0.1.1",
     "@playwright/test": "^1.32.3",
     "@spotify/prettier-config": "^15.0.0",
@@ -38,7 +38,7 @@
     "lerna": "^8.1.9",
     "node-gyp": "^10.0.0",
     "prettier": "^2.3.2",
-    "typescript": "~5.6.3"
+    "typescript": "~5.7.2"
   },
   "resolutions": {
     "@types/react": "^18",
