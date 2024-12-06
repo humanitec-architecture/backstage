@@ -10,6 +10,12 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v4
+      - name: install score-compose
+        uses: score-spec/setup-score@v3
+        with:
+          file: score-compose
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: "latest"
       - name: make compose-up
         run: |
           make compose-up
