@@ -54,7 +54,8 @@ site
 e2e-test-report/
 
 # score-compose
-.score-compose/
+.score-compose/*
+!.score-compose/environment.provisioners.yaml
 compose.yaml
 
 # score-k8s
