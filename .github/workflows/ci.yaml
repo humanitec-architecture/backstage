@@ -19,6 +19,11 @@ jobs:
       - name: make compose-up
         run: |
           make compose-up
+      - name: make k8s-up
+        run: |
+          make kind-create-cluster
+          make kind-load-image
+          make k8s-up
 
   validate-score:
     runs-on: ubuntu-latest

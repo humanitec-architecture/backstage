@@ -1,0 +1,12 @@
+- uri: template://environment/staticenv
+  type: environment
+  outputs: |
+    GITHUB_ORG_ID: ""
+    GITHUB_APP_CLIENT_ID: ""
+    GITHUB_APP_CLIENT_SECRET: ""
+    HUMANITEC_ORG_ID: ""
+    HUMANITEC_TOKEN: ""
+    CLOUD_PROVIDER: ""
+    GITHUB_APP_WEBHOOK_SECRET: ""
+    GITHUB_APP_PRIVATE_KEY: ""
+    GITHUB_APP_ID: ""

@@ -46,13 +46,7 @@ compose-down:
 
 manifests.yaml: score.yaml .score-k8s/state.yaml Makefile
 	score-k8s generate score.yaml \
-		--image ${CONTAINER_IMAGE} \
-		--override-property containers.${CONTAINER_NAME}.variables.GITHUB_ORG_ID="" \
-		--override-property containers.${CONTAINER_NAME}.variables.GITHUB_APP_CLIENT_ID="" \
-		--override-property containers.${CONTAINER_NAME}.variables.GITHUB_APP_CLIENT_SECRET="" \
-		--override-property containers.${CONTAINER_NAME}.variables.HUMANITEC_ORG_ID="" \
-		--override-property containers.${CONTAINER_NAME}.variables.HUMANITEC_TOKEN="" \
-		--override-property containers.${CONTAINER_NAME}.variables.CLOUD_PROVIDER=""
+		--image ${CONTAINER_IMAGE}
 
 ## Create a local Kind cluster.
 .PHONY: kind-create-cluster
