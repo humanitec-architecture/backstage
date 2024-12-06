@@ -47,13 +47,13 @@ containers:
         mode: "0644"
         content: |
           # Name: Backstage-Humanitec
-          appId: $${resources.env.GITHUB_APP_ID}
+          appId: ${resources.env.GITHUB_APP_ID}
           webhookUrl: https://${resources.dns.host}
-          clientId: $${resources.env.GITHUB_APP_CLIENT_ID}
-          clientSecret: $${resources.env.GITHUB_APP_CLIENT_SECRET}
-          webhookSecret: $${resources.env.GITHUB_APP_WEBHOOK_SECRET}
+          clientId: ${resources.env.GITHUB_APP_CLIENT_ID}
+          clientSecret: ${resources.env.GITHUB_APP_CLIENT_SECRET}
+          webhookSecret: ${resources.env.GITHUB_APP_WEBHOOK_SECRET}
           privateKey: |
-            $${resources.env.GITHUB_APP_PRIVATE_KEY}
+            ${resources.env.GITHUB_APP_PRIVATE_KEY}
 
     volumes:
     - source: ${resources.empty-dir}

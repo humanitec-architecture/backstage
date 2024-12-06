@@ -22,13 +22,7 @@ CONTAINER_IMAGE = ${WORKLOAD_NAME}:test
 compose.yaml: score.yaml .score-compose/state.yaml Makefile
 	mkdir -p credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
 	score-compose generate score.yaml \
-		--build '${CONTAINER_NAME}={"context":".","tags":["${CONTAINER_IMAGE}"]}' \
-		--override-property containers.${CONTAINER_NAME}.variables.GITHUB_ORG_ID="" \
-		--override-property containers.${CONTAINER_NAME}.variables.GITHUB_APP_CLIENT_ID="" \
-		--override-property containers.${CONTAINER_NAME}.variables.GITHUB_APP_CLIENT_SECRET="" \
-		--override-property containers.${CONTAINER_NAME}.variables.HUMANITEC_ORG_ID="" \
-		--override-property containers.${CONTAINER_NAME}.variables.HUMANITEC_TOKEN="" \
-		--override-property containers.${CONTAINER_NAME}.variables.CLOUD_PROVIDER=""
+		--build '${CONTAINER_NAME}={"context":".","tags":["${CONTAINER_IMAGE}"]}'
 
 ## Generate a compose.yaml file from the score spec and launch it.
 .PHONY: compose-up
