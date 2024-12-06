@@ -1,10 +1,12 @@
-- uri: cmd://python3#dotenv
+- uri: template://environment/staticenv
   type: environment
-  args:
-  - -c
-  - |
-    import json
-    with open('.env') as f:
-      content = f.read().strip()
-    env_map = dict([x.split("=",1) for x in content.strip().splitlines()])
-    print(json.dumps({"resource_outputs": env_map}))
+  outputs: |
+    GITHUB_ORG_ID: ""
+    GITHUB_APP_CLIENT_ID: ""
+    GITHUB_APP_CLIENT_SECRET: ""
+    HUMANITEC_ORG_ID: ""
+    HUMANITEC_TOKEN: ""
+    CLOUD_PROVIDER: ""
+    GITHUB_APP_WEBHOOK_SECRET: ""
+    GITHUB_APP_PRIVATE_KEY: ""
+    GITHUB_APP_ID: ""
