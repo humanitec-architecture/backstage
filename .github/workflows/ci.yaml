@@ -10,10 +10,9 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v4
-      - name: docker build backstage
+      - name: make compose-up
         run: |
-          mkdir credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
-          docker image build -t backstage:latest .
+          make compose-up
 
   validate-score:
     runs-on: ubuntu-latest
