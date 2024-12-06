@@ -28,7 +28,7 @@ node_modules/
 .nvmrc
 
 # dotenv environment variables file
-.env
+#.env
 .env.test
 
 # Build output
