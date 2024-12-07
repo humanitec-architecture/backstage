@@ -48,7 +48,7 @@ containers:
         content: |
           # Name: Backstage-Humanitec
           appId: ${resources.env.GITHUB_APP_ID}
-          webhookUrl: https://${externals.dns.host}
+          webhookUrl: https://${resources.dns.host}
           clientId: ${resources.env.GITHUB_APP_CLIENT_ID}
           clientSecret: ${resources.env.GITHUB_APP_CLIENT_SECRET}
           webhookSecret: ${resources.env.GITHUB_APP_WEBHOOK_SECRET}
