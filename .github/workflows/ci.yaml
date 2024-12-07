@@ -19,6 +19,12 @@ jobs:
       - name: make compose-up
         run: |
           make compose-up
+      - name: install score-k8s
+        uses: score-spec/setup-score@v3
+        with:
+          file: score-k8s
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: "latest"
       - name: make k8s-up
         run: |
           make kind-create-cluster
