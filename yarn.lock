@@ -3694,14 +3694,14 @@
     react-use "^17.2.4"
 
 "@backstage/plugin-permission-backend-module-allow-all-policy@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@backstage/plugin-permission-backend-module-allow-all-policy/-/plugin-permission-backend-module-allow-all-policy-0.2.2.tgz#82974716bccc1fafd2e6ff249a7c4f2bec678da4"
-  integrity sha512-9n3x3rOtwW8BbSbBt4u1ciXVPHWvKxxlk1qxWGowrboWh8Cuj98GzJSUn0KWkA1sT//HsbTTRxw+9H8nzu6dKw==
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@backstage/plugin-permission-backend-module-allow-all-policy/-/plugin-permission-backend-module-allow-all-policy-0.2.4.tgz#2c88a6bd3e679c4b49e26777837994088421464c"
+  integrity sha512-MhaYooCi1iS5od5inOCkLQ1HNouH+hR95UmDkF+AXWW4ndGtAouC+rMBEXxa3rveFIDNd4qZlaI2kL7qXw3dIw==
   dependencies:
-    "@backstage/backend-plugin-api" "^1.0.2"
-    "@backstage/plugin-auth-node" "^0.5.4"
-    "@backstage/plugin-permission-common" "^0.8.2"
-    "@backstage/plugin-permission-node" "^0.8.5"
+    "@backstage/backend-plugin-api" "^1.1.1"
+    "@backstage/plugin-auth-node" "^0.5.6"
+    "@backstage/plugin-permission-common" "^0.8.4"
+    "@backstage/plugin-permission-node" "^0.8.7"
 
 "@backstage/plugin-permission-backend@^0.5.51":
   version "0.5.51"
