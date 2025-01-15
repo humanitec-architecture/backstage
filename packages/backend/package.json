@@ -45,7 +45,7 @@
     "@humanitec/backstage-plugin-scaffolder-backend-module": "^0.5.4",
     "app": "link:../app",
     "better-sqlite3": "^11.5.0",
-    "node-gyp": "^10.0.0",
+    "node-gyp": "^11.0.0",
     "pg": "^8.11.3",
     "winston": "^3.2.1"
   },
