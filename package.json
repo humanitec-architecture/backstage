@@ -36,7 +36,7 @@
     "@spotify/prettier-config": "^15.0.0",
     "concurrently": "^9.0.1",
     "lerna": "^8.1.9",
-    "node-gyp": "^11.0.0",
+    "node-gyp": "^10.0.0",
     "prettier": "^2.3.2",
     "typescript": "~5.7.2"
   },
