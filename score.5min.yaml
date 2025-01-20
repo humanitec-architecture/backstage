@@ -39,7 +39,7 @@ containers:
       NODE_TLS_REJECT_UNAUTHORIZED: "0"
 
     volumes:
-    - source: volumes.tmp
+    - source: ${resources.tmp}
       target: /tmp
       readOnly: false
 
@@ -56,3 +56,6 @@ resources:
       port: 7007
   db:
     type: postgres
+  tmp:
+    type: volume
+    class: ephemeral
