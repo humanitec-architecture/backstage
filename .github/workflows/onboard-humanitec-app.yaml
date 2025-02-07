@@ -1,0 +1,24 @@
+name: onboard-humanitec-app
+on:
+  workflow_dispatch:
+    inputs:
+      app_id:
+        required: true
+        type: string
+        description: ID of the Humanitec App to create
+env:
+  HUMCTL_VERSION: '*'
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: install humctl
+        uses: humanitec/setup-cli-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: ${{ env.HUMCTL_VERSION }}
+      - name: create humanitec app
+        run: |
+          humctl create app ${{ github.event.inputs.app_id }} \
+              --token ${{ secrets.HUMANITEC_TOKEN }} \
+              --org ${{ vars.HUMANITEC_ORG_ID }}
