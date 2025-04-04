@@ -17,7 +17,8 @@ CONTAINER_IMAGE = ${WORKLOAD_NAME}:test
 
 .score-compose/state.yaml:
 	score-compose init \
-		--no-sample
+		--no-sample \
+		--patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-compose/unprivileged.tpl
 
 compose.yaml: score.yaml .score-compose/state.yaml Makefile
 	mkdir -p credentials && touch credentials/github-app-backstage-humanitec-credentials.yaml
@@ -42,7 +43,8 @@ compose-down:
 
 .score-k8s/state.yaml:
 	score-k8s init \
-		--no-sample
+		--no-sample \
+		--patch-templates https://raw.githubusercontent.com/score-spec/community-patchers/refs/heads/main/score-k8s/unprivileged.tpl
 
 manifests.yaml: score.yaml .score-k8s/state.yaml Makefile
 	score-k8s generate score.yaml \
