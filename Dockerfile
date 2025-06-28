@@ -1,6 +1,6 @@
 # https://backstage.io/docs/deployment/docker/#multi-stage-build
 # Stage 1 - Create yarn install skeleton layer
-FROM mirror.gcr.io/node:22-bookworm-slim AS packages
+FROM mirror.gcr.io/node:22-alpine AS packages
 
 WORKDIR /app
 COPY package.json yarn.lock ./
@@ -13,21 +13,21 @@ COPY plugins plugins
 RUN find packages \! -name "package.json" -mindepth 2 -maxdepth 2 -exec rm -rf {} \+
 
 # Stage 2 - Install dependencies and build packages
-FROM mirror.gcr.io/node:22-bookworm-slim AS build
+FROM mirror.gcr.io/node:22-alpine AS build
 
 # Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends python3 g++ build-essential && \
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    --mount=type=cache,target=/var/lib/apk,sharing=locked \
+    apk update && \
+    apk add python3 g++ make && \
     yarn config set python /usr/bin/python3
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
 # in which case you should also move better-sqlite3 to "devDependencies" in package.json.
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    --mount=type=cache,target=/var/lib/apk,sharing=locked \
+    apk update && \
+    apk add sqlite-dev
 
 USER node
 WORKDIR /app
@@ -49,27 +49,27 @@ RUN mkdir packages/backend/dist/skeleton packages/backend/dist/bundle \
     && tar xzf packages/backend/dist/bundle.tar.gz -C packages/backend/dist/bundle
 
 # Stage 3 - Build the actual backend image and install production dependencies
-FROM mirror.gcr.io/node:22-bookworm-slim
+FROM mirror.gcr.io/node:22-alpine
 
 # Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
 # Additionally, we install dependencies for `techdocs.generator.runIn: local`.
 # https://backstage.io/docs/features/techdocs/getting-started#disabling-docker-in-docker-situation-optional
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends python3 python3-pip python3-venv g++ build-essential && \
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    --mount=type=cache,target=/var/lib/apk,sharing=locked \
+    apk update && \
+    apk add python3 py3-pip g++ make && \
     yarn config set python /usr/bin/python3 && \
     python3 -m venv $VIRTUAL_ENV && \
     pip3 install mkdocs-techdocs-core==1.4.2
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
 # in which case you should also move better-sqlite3 to "devDependencies" in package.json.
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+    --mount=type=cache,target=/var/lib/apk,sharing=locked \
+    apk update && \
+    apk add sqlite-dev
 
 # From here on we use the least-privileged `node` user to run the backend.
 USER node
