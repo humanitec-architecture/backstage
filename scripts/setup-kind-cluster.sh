@@ -12,8 +12,9 @@ nodes:
     protocol: TCP
 EOF
 
+GATEWAY_API_VERSION=$(curl -sL https://api.github.com/repos/kubernetes-sigs/gateway-api/releases/latest | jq -r .tag_name)
 kubectl apply \
-    -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
+    -f https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml
 
 helm install ngf oci://ghcr.io/nginxinc/charts/nginx-gateway-fabric \
     --create-namespace \
@@ -32,4 +33,7 @@ spec:
   - name: http
     port: 80
     protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: All
 EOF
